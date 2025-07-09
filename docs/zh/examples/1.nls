@@ -1,0 +1,22 @@
+
+character Nomina "Nomina"
+image Nomina "nomina.png" pos (50%, 50%) scale 0.8
+
+scene Scene1(
+    bg "bg.png
+) {
+    show Nomina duration 1.0
+
+    Nomina: 你好！
+    Nomina: {
+        这个世界是一个巨大的世界
+        你知道我要提及关于混凝土的事情
+        富文本允许你插入文本插值，文本样式和停顿之类的东西
+        比如这是一段<b>粗体文本</>
+    }
+
+    "我是旁白"
+
+    hide Nomina duration 1.0
+}
+
