@@ -1,0 +1,41 @@
+{
+    "name": "narralang",
+    "version": "0.0.1-alpha.1",
+    "description": "NarraLeaf Scripting Language",
+    "bin": "./dist/cli.cjs",
+    "main": "dist/index.mjs",
+    "module": "dist/index.mjs",
+    "types": "dist/index.d.ts",
+    "license": "MPL-2.0",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.cjs"
+        }
+    },
+    "scripts": {
+        "build": "node project/esbuild.js && tsc --emitDeclarationOnly && tsc-alias",
+        "build:dev": "node project/esbuild.js --dev && tsc --emitDeclarationOnly && tsc-alias",
+        "watch": "node project/esbuild.js --watch & tsc --emitDeclarationOnly --watch",
+        "prepublishOnly": "npm run build"
+    },
+    "keywords": [
+        "visual-novel",
+        "typescript",
+        "narraleaf",
+        "nvl",
+        "dsl"
+    ],
+    "dependencies": {},
+    "peerDependencies": {},
+    "devDependencies": {
+        "esbuild": "^0.25.6",
+        "tsc-alias": "^1.8.16",
+        "typescript": "^5.8.3"
+    },
+    "files": [
+        "dist"
+    ],
+    "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+}
