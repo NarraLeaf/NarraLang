@@ -31,6 +31,7 @@
     "peerDependencies": {},
     "devDependencies": {
         "esbuild": "^0.25.6",
+        "narraleaf-react": "^0.7.0",
         "tsc-alias": "^1.8.16",
         "typescript": "^5.8.3"
     },
