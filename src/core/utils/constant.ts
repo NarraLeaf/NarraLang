@@ -150,7 +150,7 @@ export type NamedColor =
     | "yellow"
     | "yellowgreen";
 
-export const NamedColors: NamedColor[] = [
+export const NamedColors: string[] = [
     "aliceblue",
     "antiquewhite",
     "aqua",

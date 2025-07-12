@@ -2,9 +2,12 @@ import { flowLiteral } from "./Identifier";
 import { Keywords, KeywordType } from "./Keyword";
 import { LexerIterator } from "./LexerIterator";
 import { NoneLanguageCharacter, NumberCharacter, WhiteSpace } from "./Operator";
-import { Tokens, TokenType } from "./Token";
+import { Tokens, TokenType } from "./TokenType";
 
-export function parseNumberLiteral(iterator: LexerIterator): Tokens | null {
+export function parseNumberLiteral(iterator: LexerIterator): {
+    type: TokenType.NumberLiteral,
+    value: number,
+} | null {
     const currentChar = iterator.getCurrentChar();
 
     // Determine if current position can start a number literal
@@ -48,10 +51,12 @@ export function parseBooleanLiteral(iterator: LexerIterator): Tokens | null {
     if (currentChar === "t" || currentChar === "f") {
         const peeked = flowLiteral(iterator);
         if (peeked === "true") {
-            return iterator.consume({ type: TokenType.BooleanLiteral, value: true });
+            iterator.next(peeked.length);
+            return { type: TokenType.BooleanLiteral, value: true };
         }
         if (peeked === "false") {
-            return iterator.consume({ type: TokenType.BooleanLiteral, value: false });
+            iterator.next(peeked.length);
+            return { type: TokenType.BooleanLiteral, value: false };
         }
     }
 
@@ -63,7 +68,8 @@ export function parseNullLiteral(iterator: LexerIterator): Tokens | null {
     if (currentChar === "n") {
         const peeked = flowLiteral(iterator);
         if (peeked === "null") {
-            return iterator.consume({ type: TokenType.NullLiteral });
+            iterator.next(peeked.length);
+            return { type: TokenType.NullLiteral };
         }
     }
 
@@ -72,23 +78,23 @@ export function parseNullLiteral(iterator: LexerIterator): Tokens | null {
 
 export function getPossibleKeywords(iterator: LexerIterator): KeywordType[] {
     const currentChar = iterator.getCurrentChar();
-    const possibleOperators: KeywordType[] = [];
+    const possibleKeywords: KeywordType[] = [];
 
     for (const [key, chars] of Object.entries(Keywords)) {
         const operator = Number(key) as KeywordType;
-        // Always compare ONLY the first character of the operator representation
+        // Always compare ONLY the first character of the keyword representation
         const firstChar = Array.isArray(chars)
             ? (chars[0] as string)[0]
             : (chars as string)[0];
         if (firstChar === currentChar) {
-            possibleOperators.push(operator);
+            possibleKeywords.push(operator);
         }
     }
 
-    return possibleOperators;
+    return possibleKeywords;
 }
 
-export function tryParseOperator(possibleTypes: KeywordType[], iterator: LexerIterator): KeywordType | null {
+export function tryParseKeyword(possibleTypes: KeywordType[], iterator: LexerIterator): KeywordType | null {
     const matched: { type: KeywordType; length: number, consumed: number }[] = [];
 
     for (const type of possibleTypes) {
@@ -128,7 +134,10 @@ export function tryParseOperator(possibleTypes: KeywordType[], iterator: LexerIt
                 matched.push({ type, length: chars.join("").length, consumed });
             }
         } else {
-            const peeked = flowLiteral(iterator, [...chars]);
+            const peeked = flowLiteral(
+                iterator,
+                [...chars].filter(char => NoneLanguageCharacter.test(char))
+            );
             if (peeked === chars) {
                 matched.push({ type, length: (chars as string).length, consumed: chars.length });
             }

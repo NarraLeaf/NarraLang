@@ -1,5 +1,5 @@
-import { flowLiteral } from "./Identifier";
-import { LexerIterator } from "./LexerIterator";
+
+import type { LexerIterator } from "./LexerIterator";
 
 export enum OperatorType {
     Plus,                        // +
@@ -75,11 +75,11 @@ export const Operators: {
     [OperatorType.Dot]: ".",
     [OperatorType.Ellipsis]: "...",
 
-    [OperatorType.In]: "in",
-    [OperatorType.Is]: "is",
-    [OperatorType.And]: "and",
-    [OperatorType.Or]: "or",
-    [OperatorType.Not]: "not",
+    [OperatorType.In]: ["in"],
+    [OperatorType.Is]: ["is"],
+    [OperatorType.And]: ["and"],
+    [OperatorType.Or]: ["or"],
+    [OperatorType.Not]: ["not"],
     [OperatorType.EqualTo]: ["equal", "to"],
     [OperatorType.GreaterThan]: ["greater", "than"],
     [OperatorType.LessThan]: ["less", "than"],
@@ -87,12 +87,16 @@ export const Operators: {
     [OperatorType.LessThanOrEqual]: ["less", "than", "or", "equal", "to"],
 };
 
-export const WhiteSpace = [" ", "\t", "\r"];
+export const WhiteSpace = [" ", "\t"];
 export const NoneLanguageCharacter = /[^\p{L}]/u;
 export const LanguageCharacter = /[\p{L}]/u;
 export const IdentifierCharacter = /[\p{L}\p{Nl}\p{Nd}\p{Pc}]/u;
 export const IdentifierStartCharacter = /[\p{L}\p{Nl}\p{Pc}]/u;
 export const NumberCharacter = /[\p{Nd}]/u;
+export const EscapeCharacter = /\\/u;
+export const UnicodeCodePointCharacter = /^[0-9A-Fa-f]{1,6}$/;
+export const HexColorCharacter = /^#(?:[0-9A-Fa-f]{3,4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
+export const HexDigitCharacter = /[0-9A-Fa-f]/;
 
 export function getPossibleOperators(iterator: LexerIterator): OperatorType[] {
     const currentChar = iterator.getCurrentChar();
@@ -124,7 +128,7 @@ export function tryParseOperator(possibleTypes: OperatorType[], iterator: LexerI
 
             iterator.peekUntil((char) => {
                 const expected = chars[peeked.length];
-                if (!expected.startsWith(cache)) return true; // stop: mismatch
+                if (!expected || !expected.startsWith(cache)) return true; // stop: mismatch or end of array
 
                 if (NoneLanguageCharacter.test(char)) {
                     if (cache.length) peeked.push(cache);
@@ -152,15 +156,8 @@ export function tryParseOperator(possibleTypes: OperatorType[], iterator: LexerI
                 matched.push({ type, length: chars.join("").length, consumed });
             }
         } else {
-            if (NoneLanguageCharacter.test(chars)) {
-                if (iterator.peek(chars.length) === chars) {
-                    matched.push({ type, length: (chars as string).length, consumed: chars.length });
-                }
-            } else {
-                const peeked = flowLiteral(iterator, [...chars]);
-                if (peeked === chars) {
-                    matched.push({ type, length: (chars as string).length, consumed: chars.length });
-                }
+            if (iterator.peek(chars.length) === chars) {
+                matched.push({ type, length: (chars as string).length, consumed: chars.length });
             }
         }
     }

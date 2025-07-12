@@ -1,10 +1,12 @@
 import { IdentifierCharacter, IdentifierStartCharacter } from "./Operator";
 import type { LexerIterator } from "./LexerIterator";
-import type { Tokens } from "./Token";
-import { TokenType } from "./Token";
+import { TokenType } from "./TokenType";
 
 
-export function parseIdentifier(iterator: LexerIterator): Tokens | null {
+export function parseIdentifier(iterator: LexerIterator): {
+    type: TokenType.Identifier,
+    value: string,
+} | null {
     const currentChar = iterator.getCurrentChar();
 
     if (!IdentifierStartCharacter.test(currentChar)) {
@@ -35,4 +37,3 @@ export function flowLiteral(iterator: LexerIterator, whiteList: string[] = []): 
         return !IdentifierCharacter.test(char);
     });
 }
-

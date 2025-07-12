@@ -18,6 +18,7 @@
         "build": "node project/esbuild.js && tsc --emitDeclarationOnly && tsc-alias",
         "build:dev": "node project/esbuild.js --dev && tsc --emitDeclarationOnly && tsc-alias",
         "watch": "node project/esbuild.js --watch & tsc --emitDeclarationOnly --watch",
+        "debug": "node --inspect-brk --loader ts-node/esm --no-warnings src/index.ts",
         "prepublishOnly": "npm run build"
     },
     "keywords": [
@@ -30,9 +31,12 @@
     "dependencies": {},
     "peerDependencies": {},
     "devDependencies": {
+        "@types/node": "^20.11.18",
         "esbuild": "^0.25.6",
         "narraleaf-react": "^0.7.0",
+        "ts-node": "^10.9.2",
         "tsc-alias": "^1.8.16",
+        "tsx": "^4.20.3",
         "typescript": "^5.8.3"
     },
     "files": [

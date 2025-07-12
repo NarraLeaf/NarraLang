@@ -1,32 +1,12 @@
 import { parseIdentifier } from "./Identifier";
-import { KeywordType } from "./Keyword";
+import { LexerError } from "./LexerError";
 import type { LexerIterator } from "./LexerIterator";
-import { parseBooleanLiteral, parseNullLiteral, parseNumberLiteral } from "./Literal";
+import { getPossibleKeywords, parseBooleanLiteral, parseNullLiteral, parseNumberLiteral, tryParseKeyword } from "./Literal";
 import { getPossibleOperators, IdentifierStartCharacter, OperatorType, tryParseOperator, WhiteSpace } from "./Operator";
-import { StringToken } from "./String";
+import { parseStringTokens, StringToken } from "./String";
+import { TokenType, Tokens } from "./TokenType";
 
-export enum TokenType {
-    NewLine,
-    Operator,
-    Identifier,
-    NumberLiteral,
-    BooleanLiteral,
-    NullLiteral,
-    Keyword,
-    String,
-}
-
-export type Tokens =
-    | { type: TokenType.NewLine }
-    | { type: TokenType.Operator, value: OperatorType }
-    | { type: TokenType.Identifier, value: string }
-    | { type: TokenType.NumberLiteral, value: number }
-    | { type: TokenType.BooleanLiteral, value: boolean }
-    | { type: TokenType.NullLiteral }
-    | { type: TokenType.Keyword, value: KeywordType }
-    | { type: TokenType.String, value: StringToken }
-
-export function parseToken(iterator: LexerIterator): Tokens | null {
+export function parseToken(iterator: LexerIterator): Tokens | LexerError | null {
     const currentChar = iterator.getCurrentChar();
 
     // Skip whitespace
@@ -76,6 +56,28 @@ export function parseToken(iterator: LexerIterator): Tokens | null {
     // Identifier
     if (IdentifierStartCharacter.test(currentChar)) {
         return parseIdentifier(iterator);
+    }
+    
+    // Keyword
+    const possibleKeywords = getPossibleKeywords(iterator);
+    if (possibleKeywords.length > 0) {
+        const keywordType = tryParseKeyword(possibleKeywords, iterator);
+        if (keywordType) {
+            return iterator.consume({ type: TokenType.Keyword, value: keywordType });
+        }
+    }
+
+    // String
+    const stringToken = parseStringTokens(iterator, { EOL: ["\r\n", "\n", "\r"] }, parseToken);
+    if (stringToken) {
+        if (LexerError.isLexerError(stringToken)) {
+            return stringToken;
+        }
+
+        return {
+            type: TokenType.String,
+            value: stringToken,
+        };
     }
 
     throw new SyntaxError(`Unexpected token: ${currentChar}`);

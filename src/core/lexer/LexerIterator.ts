@@ -1,3 +1,4 @@
+import { WhiteSpace } from "./Operator";
 
 export type LexerIterator = {
     /**
@@ -65,6 +66,30 @@ export type LexerIterator = {
      * @returns The given value.
      */
     consume<T>(value: T): T;
+
+    /**
+     * Skip all whitespace characters.
+     * @returns The current character after skipping whitespace.
+     */
+    skipWhiteSpace(): string;
+
+    /**
+     * Get the current index of the cursor.
+     * @returns The current index of the cursor.
+     */
+    getIndex(): number;
+
+    /**
+     * Get the raw string.
+     * @returns The raw string.
+     */
+    getRaw(): string;
+
+    /**
+     * Get the current line of the cursor.
+     * @returns The current line of the cursor.
+     */
+    getLine(n: number): string;
 };
 
 export function createLexerIterator(raw: string): LexerIterator {
@@ -140,6 +165,15 @@ export function createLexerIterator(raw: string): LexerIterator {
         index++;
         return value;
     };
+    const skipWhiteSpace = () => {
+        while (WhiteSpace.includes(raw[index])) {
+            index++;
+        }
+        return raw[index];
+    };
+    const getIndex = () => index;
+    const getRaw = () => raw;
+    const getLine = (n: number) => raw.slice(0, index).split("\n")[n];
 
     return {
         getCurrentChar,
@@ -151,5 +185,9 @@ export function createLexerIterator(raw: string): LexerIterator {
         nextUntil,
         isDone,
         consume,
+        skipWhiteSpace,
+        getIndex,
+        getRaw,
+        getLine,
     };
 }
