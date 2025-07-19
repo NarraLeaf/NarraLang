@@ -2,7 +2,7 @@ import { NamedColor, NamedColors } from "../utils/constant";
 import { PauseConfig, WordConfig } from "../utils/narraleaf-react";
 import { HexString } from "../utils/type";
 import { parseIdentifier } from "./Identifier";
-import { LexerError } from "./LexerError";
+import { LexerError, LexerErrorType } from "./LexerError";
 import { LexerIterator } from "./LexerIterator";
 import { parseNumberLiteral } from "./Literal";
 import { EscapeCharacter, HexColorCharacter, HexDigitCharacter, IdentifierCharacter, IdentifierStartCharacter, LanguageCharacter, UnicodeCodePointCharacter, WhiteSpace } from "./Operator";
@@ -91,19 +91,27 @@ export function parseStringTokens(
     const tokens: StringToken[] = [];
     const getEOL = (char: string): number | null => {
         for (const eol of EOL) {
-            const peeked = iterator.peek(eol.length);
-            if (peeked === eol) return eol.length;
+            if (char === eol) return eol.length;
         }
         return null;
     };
 
     let stringCache: string = "";
+    const pushCache = () => {
+        if (stringCache.length) {
+            tokens.push({
+                type: StringTokenType.String,
+                value: stringCache,
+            });
+            stringCache = "";
+        }
+    }
 
     while (!iterator.isDone()) {
         const currentChar = iterator.getCurrentChar();
-        const eolLength = getEOL(currentChar);
-        if (eolLength) {
-            iterator.next(eolLength); // skip EOL
+        if (EOL.includes(currentChar)) {
+            iterator.next(); // skip EOL
+            pushCache();
             return tokens;
         }
 
@@ -115,13 +123,7 @@ export function parseStringTokens(
             iterator.next(); // skip currentChar
             continue;
         } else {
-            if (stringCache.length) { // push cache before pushing other tokens
-                tokens.push({
-                    type: StringTokenType.String,
-                    value: stringCache,
-                });
-                stringCache = "";
-            }
+            pushCache();
         }
 
         if (currentChar === TagOperators[TagOperatorType.LeftAngleBracket]) {
@@ -148,13 +150,13 @@ export function parseStringTokens(
                 if (!token) continue;
 
                 if (LexerError.isLexerError(token)) {
-                    return null;
+                    return token;
                 }
 
                 expressionTokens.push(token);
             }
 
-            if (!closed) return null;
+            if (!closed) return new LexerError(LexerErrorType.UnclosedExpression, "Unclosed expression", iterator.getIndex());
 
             tokens.push({
                 type: StringTokenType.Expression,
@@ -166,7 +168,7 @@ export function parseStringTokens(
         throw new SyntaxError(`Unexpected token when parsing string: ${currentChar}`);
     }
 
-    return null;
+    return new LexerError(LexerErrorType.UnclosedString, `Unclosed string. ${EOL.map((eol) => JSON.stringify(eol)).join(", ")} expected, but found the end of script. StringCache: ${JSON.stringify(stringCache)}`, iterator.getIndex() - 1);
 }
 
 function tryParseTag(iterator: LexerIterator): StringToken | null {

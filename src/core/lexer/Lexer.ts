@@ -4,7 +4,7 @@ import { parseToken } from "./Token";
 import type { Tokens } from "./TokenType";
 
 
-export function lexer(raw: string): Tokens[] {
+export function lexer(raw: string): Tokens[] | LexerError {
     const iterator = createLexerIterator(raw);
     const tokens: Tokens[] = [];
 
@@ -14,7 +14,8 @@ export function lexer(raw: string): Tokens[] {
 
         if (LexerError.isLexerError(token)) {
             const { line, offset, lineContent } = token.getLineInfo(raw);
-            throw new LexerError(token.type, token.message, token.index);
+            console.error(`[Lexer Error] ${token.message} at line ${line + 1}\n${lineContent}\n${" ".repeat(offset)}^`);
+            return token;
         }
 
         tokens.push(token);

@@ -1,9 +1,9 @@
 import { parseIdentifier } from "./Identifier";
-import { LexerError } from "./LexerError";
+import { LexerError, LexerErrorType } from "./LexerError";
 import type { LexerIterator } from "./LexerIterator";
 import { getPossibleKeywords, parseBooleanLiteral, parseNullLiteral, parseNumberLiteral, tryParseKeyword } from "./Literal";
 import { getPossibleOperators, IdentifierStartCharacter, OperatorType, tryParseOperator, WhiteSpace } from "./Operator";
-import { parseStringTokens, StringToken } from "./String";
+import { parseStringTokens, QuotationMarks, StringToken } from "./String";
 import { TokenType, Tokens } from "./TokenType";
 
 export function parseToken(iterator: LexerIterator): Tokens | LexerError | null {
@@ -31,7 +31,7 @@ export function parseToken(iterator: LexerIterator): Tokens | LexerError | null 
     if (numberToken) {
         return numberToken;
     }
-    
+
     // Boolean Literal
     const booleanToken = parseBooleanLiteral(iterator);
     if (booleanToken) {
@@ -49,7 +49,7 @@ export function parseToken(iterator: LexerIterator): Tokens | LexerError | null 
     if (possibleOperators.length > 0) {
         const operatorType = tryParseOperator(possibleOperators, iterator);
         if (operatorType) {
-            return iterator.consume({ type: TokenType.Operator, value: operatorType });
+            return { type: TokenType.Operator, value: operatorType };
         }
     }
 
@@ -57,7 +57,7 @@ export function parseToken(iterator: LexerIterator): Tokens | LexerError | null 
     if (IdentifierStartCharacter.test(currentChar)) {
         return parseIdentifier(iterator);
     }
-    
+
     // Keyword
     const possibleKeywords = getPossibleKeywords(iterator);
     if (possibleKeywords.length > 0) {
@@ -68,17 +68,22 @@ export function parseToken(iterator: LexerIterator): Tokens | LexerError | null 
     }
 
     // String
-    const stringToken = parseStringTokens(iterator, { EOL: ["\r\n", "\n", "\r"] }, parseToken);
-    if (stringToken) {
-        if (LexerError.isLexerError(stringToken)) {
-            return stringToken;
-        }
+    if (QuotationMarks.includes(currentChar)) {
+        const quotationMark = currentChar;
+        iterator.next(); // Skip the quotation mark.
 
-        return {
-            type: TokenType.String,
-            value: stringToken,
-        };
+        const stringToken = parseStringTokens(iterator, { EOL: [quotationMark] }, parseToken);
+        if (stringToken) {
+            if (LexerError.isLexerError(stringToken)) {
+                return stringToken;
+            }
+
+            return {
+                type: TokenType.String,
+                value: stringToken,
+            };
+        }
     }
 
-    throw new SyntaxError(`Unexpected token: ${currentChar}`);
+    throw new SyntaxError(`Unexpected token: ${JSON.stringify(currentChar)}`);
 }

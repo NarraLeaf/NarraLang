@@ -3,7 +3,7 @@ character Nomina "Nomina"
 image Nomina "nomina.png" pos (50%, 50%) scale 0.8
 
 scene Scene1(
-    bg "bg.png
+    bg "bg.png"
 ) {
     show Nomina duration 1.0
 

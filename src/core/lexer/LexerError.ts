@@ -1,6 +1,8 @@
 
 export enum LexerErrorType {
     UnexpectedToken = "UnexpectedToken",
+    UnclosedExpression = "UnclosedExpression",
+    UnclosedString = "UnclosedString",
 }
 
 export class LexerError extends Error {
