@@ -80,21 +80,15 @@ export type RawStringTag =
     | { type: StringTagType.Word, value: null };
 
 export interface StringParserConfig {
-    EOL: string[],
+    EOS: string[],
 }
 
 export function parseStringTokens(
     iterator: LexerIterator,
-    { EOL }: StringParserConfig,
+    { EOS }: StringParserConfig,
     parseTokenFn: (iterator: LexerIterator) => Tokens | LexerError | null,
 ): StringToken[] | LexerError | null {
     const tokens: StringToken[] = [];
-    const getEOL = (char: string): number | null => {
-        for (const eol of EOL) {
-            if (char === eol) return eol.length;
-        }
-        return null;
-    };
 
     let stringCache: string = "";
     const pushCache = () => {
@@ -109,7 +103,7 @@ export function parseStringTokens(
 
     while (!iterator.isDone()) {
         const currentChar = iterator.getCurrentChar();
-        if (EOL.includes(currentChar)) {
+        if (EOS.includes(currentChar)) {
             iterator.next(); // skip EOL
             pushCache();
             return tokens;
@@ -168,7 +162,7 @@ export function parseStringTokens(
         throw new SyntaxError(`Unexpected token when parsing string: ${currentChar}`);
     }
 
-    return new LexerError(LexerErrorType.UnclosedString, `Unclosed string. ${EOL.map((eol) => JSON.stringify(eol)).join(", ")} expected, but found the end of script. StringCache: ${JSON.stringify(stringCache)}`, iterator.getIndex() - 1);
+    return new LexerError(LexerErrorType.UnclosedString, `Unclosed string. ${EOS.map((eol) => JSON.stringify(eol)).join(", ")} expected, but found the end of script. StringCache: ${JSON.stringify(stringCache)}`, iterator.getIndex() - 1);
 }
 
 function tryParseTag(iterator: LexerIterator): StringToken | null {

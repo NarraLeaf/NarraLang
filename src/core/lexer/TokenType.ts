@@ -11,9 +11,10 @@ export enum TokenType {
     NullLiteral = "NullLiteral",
     Keyword = "Keyword",
     String = "String",
+    Comment = "Comment",
 }
 
-export type Tokens =
+export type TokensValue =
     | { type: TokenType.NewLine }
     | { type: TokenType.Operator; value: OperatorType }
     | { type: TokenType.Identifier; value: string }
@@ -21,4 +22,12 @@ export type Tokens =
     | { type: TokenType.BooleanLiteral; value: boolean }
     | { type: TokenType.NullLiteral }
     | { type: TokenType.Keyword; value: KeywordType }
-    | { type: TokenType.String; value: StringToken[] };
+    | { type: TokenType.String; value: StringToken[] }
+    | { type: TokenType.Comment; value: string };
+
+export type TokenTrace = {
+    start: number;
+    end: number;
+};
+
+export type Tokens = TokensValue & TokenTrace;

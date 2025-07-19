@@ -2,12 +2,13 @@ import { flowLiteral } from "./Identifier";
 import { Keywords, KeywordType } from "./Keyword";
 import { LexerIterator } from "./LexerIterator";
 import { NoneLanguageCharacter, NumberCharacter, WhiteSpace } from "./Operator";
-import { Tokens, TokenType } from "./TokenType";
+import { Tokens, TokenTrace, TokenType } from "./TokenType";
 
 export function parseNumberLiteral(iterator: LexerIterator): {
     type: TokenType.NumberLiteral,
     value: number,
-} | null {
+} & TokenTrace | null {
+    const startIndex = iterator.getIndex();
     const currentChar = iterator.getCurrentChar();
 
     // Determine if current position can start a number literal
@@ -43,20 +44,27 @@ export function parseNumberLiteral(iterator: LexerIterator): {
     }
 
     // Consume the first character (or the only character when offset === 1) and return token
-    return iterator.consume({ type: TokenType.NumberLiteral, value: Number(collected) });
+    return iterator.consume({
+        type: TokenType.NumberLiteral,
+        value: Number(collected),
+        start: startIndex,
+        end: iterator.getIndex() - 1,
+    });
 }
 
 export function parseBooleanLiteral(iterator: LexerIterator): Tokens | null {
+    const startIndex = iterator.getIndex();
     const currentChar = iterator.getCurrentChar();
+
     if (currentChar === "t" || currentChar === "f") {
         const peeked = flowLiteral(iterator);
         if (peeked === "true") {
             iterator.next(peeked.length);
-            return { type: TokenType.BooleanLiteral, value: true };
+            return { type: TokenType.BooleanLiteral, value: true, start: startIndex, end: startIndex + peeked.length - 1 };
         }
         if (peeked === "false") {
             iterator.next(peeked.length);
-            return { type: TokenType.BooleanLiteral, value: false };
+            return { type: TokenType.BooleanLiteral, value: false, start: startIndex, end: startIndex + peeked.length - 1 };
         }
     }
 
@@ -64,12 +72,14 @@ export function parseBooleanLiteral(iterator: LexerIterator): Tokens | null {
 }
 
 export function parseNullLiteral(iterator: LexerIterator): Tokens | null {
+    const startIndex = iterator.getIndex();
     const currentChar = iterator.getCurrentChar();
+
     if (currentChar === "n") {
         const peeked = flowLiteral(iterator);
         if (peeked === "null") {
             iterator.next(peeked.length);
-            return { type: TokenType.NullLiteral };
+            return { type: TokenType.NullLiteral, start: startIndex, end: startIndex + peeked.length - 1 };
         }
     }
 

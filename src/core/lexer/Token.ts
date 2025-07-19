@@ -1,29 +1,33 @@
+import { isNewLine, parseComment } from "./Comment";
 import { parseIdentifier } from "./Identifier";
-import { LexerError, LexerErrorType } from "./LexerError";
+import { Keywords } from "./Keyword";
+import { LexerError } from "./LexerError";
 import type { LexerIterator } from "./LexerIterator";
 import { getPossibleKeywords, parseBooleanLiteral, parseNullLiteral, parseNumberLiteral, tryParseKeyword } from "./Literal";
-import { getPossibleOperators, IdentifierStartCharacter, OperatorType, tryParseOperator, WhiteSpace } from "./Operator";
-import { parseStringTokens, QuotationMarks, StringToken } from "./String";
-import { TokenType, Tokens } from "./TokenType";
+import { getPossibleOperators, IdentifierStartCharacter, Operators, tryParseOperator, WhiteSpace } from "./Operator";
+import { parseStringTokens, QuotationMarks } from "./String";
+import { Tokens, TokenType } from "./TokenType";
 
 export function parseToken(iterator: LexerIterator): Tokens | LexerError | null {
     const currentChar = iterator.getCurrentChar();
+    const startIndex = iterator.getIndex();
 
     // Skip whitespace
     if (WhiteSpace.includes(currentChar)) {
         return iterator.next();
     }
 
-    // NewLine
-    if (currentChar === "\r") {
-        // CRLF. Skip the current character (\r).
-        if (iterator.peekChar() === "\n") {
-            return iterator.next();
-        }
-        return iterator.consume({ type: TokenType.NewLine });
+    // Comment
+    const commentToken = parseComment(iterator);
+    if (commentToken) {
+        return commentToken;
     }
-    if (currentChar === "\n") {
-        return iterator.consume({ type: TokenType.NewLine });
+
+    // NewLine
+    const newLine = isNewLine(iterator);
+    if (newLine > 0) {
+        iterator.next(newLine);
+        return { type: TokenType.NewLine, start: startIndex, end: startIndex + newLine - 1 };
     }
 
     // Number Literal
@@ -49,7 +53,7 @@ export function parseToken(iterator: LexerIterator): Tokens | LexerError | null 
     if (possibleOperators.length > 0) {
         const operatorType = tryParseOperator(possibleOperators, iterator);
         if (operatorType) {
-            return { type: TokenType.Operator, value: operatorType };
+            return { type: TokenType.Operator, value: operatorType, start: startIndex, end: startIndex + Operators[operatorType].length - 1 };
         }
     }
 
@@ -63,7 +67,12 @@ export function parseToken(iterator: LexerIterator): Tokens | LexerError | null 
     if (possibleKeywords.length > 0) {
         const keywordType = tryParseKeyword(possibleKeywords, iterator);
         if (keywordType) {
-            return iterator.consume({ type: TokenType.Keyword, value: keywordType });
+            return {
+                type: TokenType.Keyword,
+                value: keywordType,
+                start: startIndex,
+                end: startIndex + Keywords[keywordType].length - 1,
+            };
         }
     }
 
@@ -72,7 +81,7 @@ export function parseToken(iterator: LexerIterator): Tokens | LexerError | null 
         const quotationMark = currentChar;
         iterator.next(); // Skip the quotation mark.
 
-        const stringToken = parseStringTokens(iterator, { EOL: [quotationMark] }, parseToken);
+        const stringToken = parseStringTokens(iterator, { EOS: [quotationMark] }, parseToken);
         if (stringToken) {
             if (LexerError.isLexerError(stringToken)) {
                 return stringToken;
@@ -81,6 +90,8 @@ export function parseToken(iterator: LexerIterator): Tokens | LexerError | null 
             return {
                 type: TokenType.String,
                 value: stringToken,
+                start: startIndex,
+                end: iterator.getIndex() - 1,
             };
         }
     }
