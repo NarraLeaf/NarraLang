@@ -1,0 +1,221 @@
+// 基础数据类型测试
+set nullValue null
+set boolTrue true
+set boolFalse false
+set intNum 42
+set floatNum 3.14159
+set expNum 1.23e-4
+set hexNum 255
+set binaryNum 10
+set octalNum 493
+
+// 字符串测试
+set simpleStr "Hello World"
+set singleQuoteStr 'Single quoted string'
+set emptyStr ""
+set unicodeStr "你好世界\u{4F60}\u{597D}"
+set escapeStr "Line1\nLine2\tTabbed\r\nMixed"
+
+// 字符串标签测试
+set boldStr "这是<b>粗体</b>文本"
+set italicStr "这是<i>斜体</i>文本"
+set colorStr "这是<#FF0000>红色</>文本"
+set pauseStr "停顿<pause duration=1000 />继续"
+set wordStr "单词<p ruby="ruby text" />测试"
+set mixedTags "混合<b><#00FF00>彩色粗体</></b>标签"
+
+// 字符串表达式测试
+set name "Alice"
+set age 25
+set exprStr "姓名: {name}, 年龄: {age}"
+set calcStr "计算结果: {2 + 3 * 4}"
+set nestedStr "嵌套: {name + '的年龄是' + age}"
+
+// 数组测试
+set emptyArr []
+set simpleArr [1, 2, 3, 4, 5]
+set mixedArr [1, "two", true, null, [1, 2, 3]]
+set nestedArr [[1, 2], [3, 4], [5, 6]]
+set trailingComma [1, 2, 3,]
+
+// 对象测试
+set emptyObj {}
+set simpleObj {name: "John", age: 30}
+set nestedObj {person: {name: "Jane", age: 25}}
+set computedKey {["key" + "1"]: "value1"}
+set spreadObj {...simpleObj, city: "Beijing"}
+
+// 元组测试
+set emptyTup ()
+set simpleTup (1, 2, 3)
+set mixedTup (1, "two", true)
+set singleTup (42,)
+set nestedTup ((1, 2), (3, 4))
+
+// 变量声明测试
+set globalVar "global value"
+const globalConst "constant value"
+var functionVar "function scope"
+local set localVar "local scope"
+
+// 解构赋值测试
+set [first, second, third] [1, 2, 3]
+set [head, ...tail] [1, 2, 3, 4, 5]
+set {name: personName, age: personAge} {name: "Bob", age: 35}
+set {title, ...rest} {title: "Book", author: "Author", year: 2023}
+
+// 操作符测试
+set addResult 5 + 3
+set subResult 10 - 4
+set mulResult 6 * 7
+set divResult 20 / 4
+set modResult 17 % 5
+set expResult 256
+set negResult -42
+set posResult +3.14
+
+// 比较操作符测试
+set eqResult 5 = 5
+set neResult 5 != 3
+set gtResult 10 > 5
+set gteResult 10 >= 10
+set ltResult 3 < 7
+set lteResult 5 <= 5
+
+// 逻辑操作符测试
+set andResult true and false
+set orResult true or false
+set notResult not true
+set complexLogic (a > 0) and (b < 10) or (c = 0)
+
+// 语义操作符测试
+set isEqual 5 is 5
+set isNotEqual 5 is not 3
+set isGreater 10 is greater than 5
+set isLess 3 is less than 7
+set isGreaterEqual 10 is greater than or equal to 10
+set isLessEqual 5 is less than or equal to 5
+set isIn 3 is in [1, 2, 3, 4, 5]
+set isNotIn 6 is not in [1, 2, 3, 4, 5]
+
+// 三目运算符测试
+"positive" if set ternaryResult x > 0 else "negative"
+set ifElseResult "positive" if x > 0 else "negative"
+
+// 函数定义测试
+function add(a, b) {
+    return a + b
+}
+
+function! asyncFunc() {
+    await someAsyncOperation()
+}
+
+function! macroFunc(*options) {
+    // macro function with optional parameters
+}
+
+// 控制流测试
+if x > 0 {
+    set result "positive"
+} else if x < 0 {
+    set result "negative"
+} else {
+    set result "zero"
+}
+
+loop 5 times {
+    set counter counter + 1
+}
+
+while condition {
+    set value value * 2
+    if value > 100 {
+        break
+    }
+}
+
+for each item in array {
+    console.log(item)
+}
+
+for i from 0 to 10 {
+    set sum sum + i
+}
+
+// 对话测试
+character Alice "Alice"
+character Bob "Bob"
+
+Alice: 你好，我是Alice！
+
+Bob: 你好Alice，我是Bob！
+
+Alice: {
+    这是多行对话
+    可以包含多行内容
+    支持字符串插值：{name}
+    也支持标签：<b>粗体</b>
+}
+
+"unknown": {
+    这是多行旁白
+    同样支持插值和标签
+    可以包含复杂的表达式：{Math.max(1, 2, 3)}
+}
+
+// 场景定义测试
+scene MainScene(
+    bg "background.png"
+    music "bgm.mp3"
+) {
+    show Alice duration 1.0
+    "场景开始"
+    
+    Alice: 欢迎来到主场景！
+    
+    hide Alice duration 0.5
+}
+
+// 内建对象测试
+set currentTime Date.now()
+set randomNum Random.int(1, 100)
+set maxValue Math.max(1, 2, 3, 4, 5)
+set piValue Math.PI
+set logMessage console.log("测试消息")
+
+// 语法糖测试
+add 5 to array
+sub 3 from counter
+mul result by 2
+div total by count
+insert "new item" to array at 0
+remove "old item" from array
+
+// 边缘案例测试
+set veryLongNumber 123456789012345678901234567890
+set veryLongString "这是一个非常长的字符串，包含很多字符，用来测试词法分析器对长字符串的处理能力"
+set unicodeIdentifier 你好世界123
+set underscoreIdentifier _private_var
+
+// 注释测试
+// 这是单行注释
+set commentedVar "value" // 行尾注释
+
+// 特殊字符测试
+set specialChars "特殊字符: !@#$%^&*()_+-=[]{}|;':\",./?"
+set unicodeChars "Unicode: αβγδε ζηθικλ μνξοπρ στυφχψ ω"
+set emojiChars "Emoji: 😀🎉🌟💯🔥"
+
+// 空值和边界测试
+set emptyString ""
+set zeroNumber 0
+set negativeZero -0
+set infinityValue Infinity
+set nanValue NaN
+set undefinedValue undefined
+
+// 复杂表达式测试
+set complexExpr (a + b) * (c - d) / (e * e)
+set nestedExpr Math.max(1, Math.min(10, x + y))
+set ternaryNested a > 0 ? (b > 0 ? "both positive" : "only a positive") : "a not positive" 

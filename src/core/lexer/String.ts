@@ -1,12 +1,11 @@
 import { NamedColor, NamedColors } from "../utils/constant";
-import { PauseConfig, WordConfig } from "../utils/narraleaf-react";
 import { HexString } from "../utils/type";
 import { parseIdentifier } from "./Identifier";
 import { LexerError, LexerErrorType } from "./LexerError";
 import { LexerIterator } from "./LexerIterator";
 import { parseNumberLiteral } from "./Literal";
-import { EscapeCharacter, HexColorCharacter, HexDigitCharacter, IdentifierCharacter, IdentifierStartCharacter, LanguageCharacter, UnicodeCodePointCharacter, WhiteSpace } from "./Operator";
-import { ParseTokenFn, type Tokens } from "./TokenType";
+import { EscapeCharacter, HexColorCharacter, HexDigitCharacter, IdentifierStartCharacter, LanguageCharacter, UnicodeCodePointCharacter, WhiteSpace } from "./Operator";
+import { EndOfFile, ParseTokenFn, type Tokens } from "./TokenType";
 
 export enum StringTokenType {
     String,
@@ -19,7 +18,7 @@ export type StringToken =
     | { type: StringTokenType.String, value: string }
     | { type: StringTokenType.Expression, value: Tokens[] }
     | { type: StringTokenType.Tag, value: StringTag }
-    | { type: StringTokenType.CloseTag };
+    | { type: StringTokenType.CloseTag, value: string | null };
 export const QuotationMarks = ["\"", "'"];
 
 /* Tag */
@@ -80,14 +79,14 @@ export type RawStringTag =
     | { type: StringTagType.Word, value: null };
 
 export interface StringParserConfig {
-    EOS: string[],
+    EOS: (string | typeof EndOfFile)[],
 }
 
 export function parseStringTokens(
     iterator: LexerIterator,
     { EOS }: StringParserConfig,
     parseTokenFn: ParseTokenFn,
-): StringToken[] | LexerError | null {
+): StringToken[] | LexerError {
     const tokens: StringToken[] = [];
 
     let stringCache: string = "";
@@ -109,6 +108,15 @@ export function parseStringTokens(
             return tokens;
         }
 
+        if (EscapeCharacter.test(currentChar)) {
+            const escaped = tryEscape(iterator);
+            if (LexerError.isLexerError(escaped)) return escaped;
+            if (!escaped) return new LexerError(LexerErrorType.InvalidEscapeSequence, `Invalid escape sequence: ${currentChar}`, iterator.getIndex());
+
+            stringCache += escaped.value;
+            continue;
+        }
+
         if (![
             TagOperators[TagOperatorType.LeftAngleBracket],
             TagOperators[TagOperatorType.LeftBrace],
@@ -122,7 +130,7 @@ export function parseStringTokens(
 
         if (currentChar === TagOperators[TagOperatorType.LeftAngleBracket]) {
             const token = tryParseTag(iterator);
-            if (!token || LexerError.isLexerError(token)) return token;
+            if (LexerError.isLexerError(token)) return token;
 
             tokens.push(token);
             continue;
@@ -132,6 +140,8 @@ export function parseStringTokens(
             const expressionTokens: Tokens[] = [];
             let closed = false;
 
+            iterator.next(); // skip "{", so it will not be parsed as an operator
+
             while (!iterator.isDone()) {
                 const currentChar = iterator.getCurrentChar();
                 if (currentChar === TagOperators[TagOperatorType.RightBrace]) {
@@ -140,7 +150,7 @@ export function parseStringTokens(
                     break;
                 }
 
-                const token = parseTokenFn(iterator);
+                const token = parseTokenFn(iterator, { allowDialogue: false });
                 if (!token) continue;
 
                 if (LexerError.isLexerError(token)) {
@@ -159,16 +169,20 @@ export function parseStringTokens(
             continue;
         }
 
-        throw new SyntaxError(`Unexpected token when parsing string: ${currentChar}`);
+        return new LexerError(LexerErrorType.UnexpectedToken, `Unexpected token when parsing string: ${currentChar}`, iterator.getIndex());
+    }
+
+    if (EOS.includes(EndOfFile)) {
+        return tokens;
     }
 
     return new LexerError(LexerErrorType.UnclosedString, `Unclosed string. ${EOS.map((eol) => JSON.stringify(eol)).join(", ")} expected, but found the end of script. StringCache: ${JSON.stringify(stringCache)}`, iterator.getIndex() - 1);
 }
 
-function tryParseTag(iterator: LexerIterator): StringToken | LexerError | null {
+function tryParseTag(iterator: LexerIterator): StringToken | LexerError {
     const currentChar = iterator.getCurrentChar();
     if (currentChar !== TagOperators[TagOperatorType.LeftAngleBracket]) {
-        return null;
+        return new LexerError(LexerErrorType.UnexpectedToken, `Unexpected token when parsing tag. Expected '<', but found ${currentChar}`, iterator.getIndex());
     }
     iterator.next(); // skip "<"
 
@@ -177,13 +191,31 @@ function tryParseTag(iterator: LexerIterator): StringToken | LexerError | null {
         iterator.next(); // skip "/"
         iterator.skipWhiteSpace(); // skip whitespace
 
+        // Parse optional tag name for close tag
+        let tagName: string | null = null;
+        if (LanguageCharacter.test(iterator.getCurrentChar())) {
+            const parsedTagName = iterator.peekUntil((char) => {
+                if (!LanguageCharacter.test(char)) {
+                    return true;
+                }
+                return false;
+            });
+            if (parsedTagName?.length) {
+                tagName = parsedTagName;
+                iterator.next(parsedTagName.length); // skip tagName
+                iterator.skipWhiteSpace(); // skip whitespace
+            }
+        }
+
         if (iterator.getCurrentChar() !== TagOperators[TagOperatorType.RightAngleBracket]) {
             return new LexerError(LexerErrorType.UnclosedTag, "Unclosed tag. Expected '>'.", iterator.getIndex());
         }
+        iterator.next(); // skip ">"
 
-        return iterator.consume({
+        return {
             type: StringTokenType.CloseTag,
-        }); // skip whitespace
+            value: tagName,
+        };
     }
 
     const tagType = parseTagName(iterator);
@@ -216,30 +248,49 @@ function parseTagName(iterator: LexerIterator): RawStringTag | LexerError {
 
     if (currentChar === TagOperators[TagOperatorType.Hash]) {
         iterator.next(); // skip "#"
-        const hexColor = iterator.peekUntil((char) => {
+        let hexColor = "";
+        let consumed = 0;
+        
+        while (!iterator.isDone()) {
+            const char = iterator.getCurrentChar();
             if (!HexDigitCharacter.test(char)) {
-                return true;
+                break;
             }
-            return false;
-        });
-        if (!hexColor?.length || !HexColorCharacter.test(hexColor)) return new LexerError(
-            LexerErrorType.UnexpectedToken,
-            `Unexpected token when parsing tag. Expected hex color, but found ${iterator.getCurrentChar()}`,
-            iterator.getIndex()
-        );
+            hexColor += char;
+            consumed++;
+            iterator.next();
+        }
+        
+        if (!hexColor.length) {
+            return new LexerError(
+                LexerErrorType.UnexpectedToken,
+                `Unexpected token when parsing tag. Expected hex color, but found ${iterator.getCurrentChar()}`,
+                iterator.getIndex()
+            );
+        }
+        
+        const fullHexColor = `#${hexColor}`;
+        if (!HexColorCharacter.test(fullHexColor)) {
+            return new LexerError(
+                LexerErrorType.UnexpectedToken,
+                `Invalid hex color format: ${fullHexColor}`,
+                iterator.getIndex()
+            );
+        }
+        
         if (![
             ...WhiteSpace,
             TagOperators[TagOperatorType.RightAngleBracket],
             TagOperators[TagOperatorType.Slash],
-        ].includes(iterator.getCurrentChar())) return new LexerError(
-            LexerErrorType.UnexpectedToken,
-            `Unexpected token when parsing tag. Expected end of tag, but found ${iterator.getCurrentChar()}`,
-            iterator.getIndex()
-        );
+        ].includes(iterator.getCurrentChar())) {
+            return new LexerError(
+                LexerErrorType.UnexpectedToken,
+                `Unexpected token when parsing tag. Expected end of tag, but found ${iterator.getCurrentChar()}`,
+                iterator.getIndex()
+            );
+        }
 
-        iterator.next(hexColor.length); // skip hexColor
-
-        return iterator.consume({ type: StringTagType.HexColor, value: `#${hexColor}` }); // skip whitespace
+        return { type: StringTagType.HexColor, value: fullHexColor as HexString };
     }
 
     if (LanguageCharacter.test(currentChar)) {
@@ -335,10 +386,16 @@ function parseProperty(iterator: LexerIterator): Record<string, string | number>
             if (!parsedValue) {
                 if (QuotationMarks.includes(iterator.getCurrentChar())) {
                     const quote = iterator.getCurrentChar();
-                    parsedValue = flowString(iterator, [quote], quote);
+                    const flowed = flowString(iterator, [quote], quote);
+
+                    if (LexerError.isLexerError(flowed)) return flowed;
+                    if (flowed === null) {
+                        return new LexerError(LexerErrorType.StringParsingError, `Unclosed string in tag property.`, iterator.getIndex());
+                    }
+                    parsedValue = flowed;
                 }
             }
-            if (!parsedValue) return new LexerError(LexerErrorType.StringParsingError, `The tag property value is not a number or string.`, iterator.getIndex());
+            if (parsedValue === null) return new LexerError(LexerErrorType.StringParsingError, `The tag property value is not a number or string.`, iterator.getIndex());
 
             if (shoudClose) {
                 if (iterator.getCurrentChar() !== TagOperators[TagOperatorType.RightBrace]) {
@@ -360,11 +417,11 @@ function parseProperty(iterator: LexerIterator): Record<string, string | number>
     return properties;
 }
 
-function flowString(iterator: LexerIterator, startChar: string[] | null, endChar: string): string | null {
+function flowString(iterator: LexerIterator, startChar: string[] | null, endChar: string): string | null | LexerError {
     let char: string = "";
 
     if (startChar && !startChar.includes(iterator.getCurrentChar())) {
-        return null;
+        return new LexerError(LexerErrorType.UnknownError, `Unknown error when parsing string: ${iterator.getCurrentChar()}`, iterator.getIndex());
     }
     if (startChar) {
         iterator.next(); // skip startChar
@@ -379,7 +436,8 @@ function flowString(iterator: LexerIterator, startChar: string[] | null, endChar
 
         if (EscapeCharacter.test(currentChar)) {
             const escaped = tryEscape(iterator);
-            if (!escaped) return null;
+            if (LexerError.isLexerError(escaped)) return escaped;
+            if (!escaped) return new LexerError(LexerErrorType.InvalidEscapeSequence, `Invalid escape sequence: ${currentChar}`, iterator.getIndex());
 
             char += escaped.value;
             continue;
@@ -395,7 +453,7 @@ function flowString(iterator: LexerIterator, startChar: string[] | null, endChar
 function tryEscape(iterator: LexerIterator): {
     type: StringTokenType.String,
     value: string,
-} | null {
+} | null | LexerError {
     const currentChar = iterator.getCurrentChar();
     if (!EscapeCharacter.test(currentChar)) {
         return null;
@@ -411,25 +469,40 @@ function tryEscape(iterator: LexerIterator): {
     if (head === "u") {
         iterator.next(); // skip "u"
         if (iterator.getCurrentChar() !== TagOperators[TagOperatorType.LeftBrace]) {
-            return null;
+            return new LexerError(LexerErrorType.InvalidUnicodeCodePoint, `Invalid unicode code point: ${iterator.getCurrentChar()}`, iterator.getIndex());
         }
         iterator.next(); // skip "{"
 
-        const codepoint = iterator.peekUntil((char) => {
+        let codepoint = "";
+        let consumed = 0;
+        
+        while (!iterator.isDone()) {
+            const char = iterator.getCurrentChar();
             if (!UnicodeCodePointCharacter.test(char)) {
-                return true;
+                break;
             }
-            return false;
-        });
-        if (!codepoint?.length) return null;
+            codepoint += char;
+            consumed++;
+            iterator.next();
+        }
+        
+        if (!codepoint.length || codepoint.length > 6) {
+            return new LexerError(LexerErrorType.InvalidUnicodeCodePoint, `Invalid unicode code point: ${codepoint}`, iterator.getIndex());
+        }
 
         if (iterator.getCurrentChar() !== TagOperators[TagOperatorType.RightBrace]) {
-            return null;
+            return new LexerError(LexerErrorType.InvalidUnicodeCodePoint, `Invalid unicode code point: ${codepoint}`, iterator.getIndex());
         }
         iterator.next(); // skip "}"
-        return { type: StringTokenType.String, value: String.fromCodePoint(parseInt(codepoint, 16)) };
+        
+        const codePointValue = parseInt(codepoint, 16);
+        if (isNaN(codePointValue) || codePointValue > 0x10FFFF) {
+            return new LexerError(LexerErrorType.InvalidUnicodeCodePoint, `Invalid unicode code point: ${codepoint}`, iterator.getIndex());
+        }
+        
+        return { type: StringTokenType.String, value: String.fromCodePoint(codePointValue) };
     }
 
-    return null;
+    return new LexerError(LexerErrorType.InvalidEscapeSequence, `Invalid escape sequence: ${currentChar}`, iterator.getIndex());
 }
 

@@ -12,7 +12,7 @@ export function parseIdentifier(iterator: LexerIterator): {
     const currentChar = iterator.getCurrentChar();
 
     if (!IdentifierStartCharacter.test(currentChar)) {
-        return new LexerError(LexerErrorType.UnexpectedToken, `Unexpected token when parsing identifier: ${currentChar}`, iterator.getIndex());
+        return new LexerError(LexerErrorType.UnexpectedToken, `Unexpected token when parsing identifier: ${JSON.stringify(currentChar)}`, iterator.getIndex());
     }
 
     let identifier = "";

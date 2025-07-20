@@ -2,7 +2,7 @@ import { isNewLine, parseComment } from "./Comment";
 import { parseDialogue } from "./Dialogue";
 import { parseIdentifier } from "./Identifier";
 import { Keywords } from "./Keyword";
-import { LexerError } from "./LexerError";
+import { LexerError, LexerErrorType } from "./LexerError";
 import type { LexerIterator } from "./LexerIterator";
 import { getPossibleKeywords, parseBooleanLiteral, parseNullLiteral, parseNumberLiteral, tryParseKeyword } from "./Literal";
 import { getPossibleOperators, IdentifierStartCharacter, Operators, tryParseOperator, WhiteSpace } from "./Operator";
@@ -40,7 +40,7 @@ export function parseToken(iterator: LexerIterator, opt?: ParseTokenFnOptions): 
         return { type: TokenType.NewLine, start: startIndex, end: startIndex + newLine - 1 };
     }
 
-    // Dialogue (must be before other token types to avoid conflicts)
+    // Dialogue
     if (options.allowDialogue) {
         const dialogueToken = parseDialogue(iterator, parser);
         if (dialogueToken) {
@@ -70,21 +70,16 @@ export function parseToken(iterator: LexerIterator, opt?: ParseTokenFnOptions): 
     const possibleOperators = getPossibleOperators(iterator);
     if (possibleOperators.length > 0) {
         const operatorType = tryParseOperator(possibleOperators, iterator);
-        if (operatorType) {
+        if (operatorType !== null) {
             return { type: TokenType.Operator, value: operatorType, start: startIndex, end: startIndex + Operators[operatorType].length - 1 };
         }
-    }
-
-    // Identifier
-    if (IdentifierStartCharacter.test(currentChar)) {
-        return parseIdentifier(iterator);
     }
 
     // Keyword
     const possibleKeywords = getPossibleKeywords(iterator);
     if (possibleKeywords.length > 0) {
         const keywordType = tryParseKeyword(possibleKeywords, iterator);
-        if (keywordType) {
+        if (keywordType !== null) {
             return {
                 type: TokenType.Keyword,
                 value: keywordType,
@@ -92,6 +87,11 @@ export function parseToken(iterator: LexerIterator, opt?: ParseTokenFnOptions): 
                 end: startIndex + Keywords[keywordType].length - 1,
             };
         }
+    }
+
+    // Identifier
+    if (IdentifierStartCharacter.test(currentChar)) {
+        return parseIdentifier(iterator);
     }
 
     // String
@@ -114,5 +114,5 @@ export function parseToken(iterator: LexerIterator, opt?: ParseTokenFnOptions): 
         }
     }
 
-    throw new SyntaxError(`Unexpected token: ${JSON.stringify(currentChar)}`);
+    return new LexerError(LexerErrorType.UnexpectedToken, `Unexpected token: ${JSON.stringify(currentChar)}`, iterator.getIndex());
 }

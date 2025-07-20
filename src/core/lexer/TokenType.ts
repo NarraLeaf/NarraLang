@@ -3,7 +3,7 @@ import { KeywordType } from "./Keyword";
 import type { StringToken } from "./String";
 import { LexerIterator } from "./LexerIterator";
 import { LexerError } from "./LexerError";
-import { DialogueToken } from "./Dialogue";
+import { DialogueToken, MultiLineDialogueToken } from "./Dialogue";
 
 export enum TokenType {
     NewLine = "NewLine",
@@ -16,6 +16,7 @@ export enum TokenType {
     String = "String",
     Comment = "Comment",
     Dialogue = "Dialogue",
+    MultiLineDialogue = "MultiLineDialogue",
 }
 
 export type TokensValue =
@@ -28,12 +29,15 @@ export type TokensValue =
     | { type: TokenType.Keyword; value: KeywordType }
     | { type: TokenType.String; value: StringToken[] }
     | { type: TokenType.Comment; value: string }
-    | { type: TokenType.Dialogue; value: DialogueToken };
+    | { type: TokenType.Dialogue; value: DialogueToken }
+    | { type: TokenType.MultiLineDialogue; value: MultiLineDialogueToken };
 
 export type TokenTrace = {
     start: number;
     end: number;
 };
+
+export const EndOfFile = Symbol("EndOfFile");
 
 export type Tokens = TokensValue & TokenTrace;
 export type ParseTokenFnOptions = Partial<{

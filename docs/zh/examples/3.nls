@@ -1,0 +1,260 @@
+// 边缘案例和错误情况测试
+
+// 1. 数字字面量边缘案例
+set leadingZero 123
+set decimalOnly 0.5
+set expOnly 1e10
+set expPlus 1e+10
+set expMinus 1e-10
+set multipleDots 1.23
+set validExp 1e5
+set validExpPlus 1e+5
+set validExpMinus 1e-5
+
+// 2. 字符串边缘案例
+set closedString "This string is closed"
+set closedString2 'Another closed string'
+set closedExpression "Expression {1 + 2}"
+set closedTag "Closed tag <b>text</b>"
+set closedTag2 "Closed tag <b>text</b>"
+set validEscape "Valid escape \\n"
+set validUnicode "Valid unicode \u{1F600}"
+set validHexColor "Valid color <#FF0000>text</>"
+
+// 3. 标识符边缘案例
+set valid123 42
+set validMinus 42
+set validDot 42
+set validWithDash 42
+set validWithSpace 42
+set unicodeIdentifier 42
+set _123valid 42
+set special 42
+
+// 4. 操作符边缘案例
+set validOp 5 + 3
+set validOp2 5 - 3
+set validOp3 5 * 3
+set validOp4 5 / 3
+set completeOp 5 + 3
+set completeOp2 5 + 3
+set validDoubleOp 5 + 3
+set validTripleOp 5 + 3
+
+// 5. 数组边缘案例
+set closedArray [1, 2, 3]
+set validEmpty [1, 2]
+set validDouble [1, 2, 3]
+set validTrailing [1, 2, 3]
+set validLeading [1, 2, 3]
+set nestedClosed [[1, 2], [3, 4]]
+
+// 6. 对象边缘案例
+set closedObject {name: "John"}
+set validColon {name: "value"}
+set validDouble {name: "John"}
+set validValue {name: "value"}
+set validKey {name: "value"}
+set closedNested {person: {name: "Jane"}}
+
+// 7. 元组边缘案例
+set closedTuple (1, 2, 3)
+set validEmptyTuple (1, 2)
+set validDoubleTuple (1, 2, 3)
+set validTrailingTuple (1, 2, 3)
+set validLeadingTuple (1, 2, 3)
+
+// 8. 对话边缘案例
+character Alice "Alice"
+character Bob "Bob"
+
+Alice: 这是有效的对话
+
+Bob: {
+    这是有效的多行对话
+    第二行内容
+}
+
+"unknown": {
+    这是有效的旁白
+    第二行内容
+}
+
+// 9. 函数边缘案例
+function validFunc() {
+    return "valid"
+}
+
+function validFunc2(a) {
+    return a
+}
+
+function validFunc3(a, b) {
+    return a + b
+}
+
+function validFunc4(a, b) {
+    return a + b
+}
+
+function validFunc5(a, b) {
+    return a + b
+}
+
+function validFunc6(a, b) {
+    return a + b
+}
+
+// 10. 控制流边缘案例
+set condition true
+set items [1, 2, 3]
+
+if condition {
+    // valid if block
+}
+
+while condition {
+    // valid while block
+}
+
+for each item in items {
+    // valid for each block
+}
+
+loop 5 times {
+    // valid loop block
+}
+
+// 11. 注释边缘案例
+// 正常注释
+set var "value" // 行尾注释
+// 多行注释测试
+// 第二行
+// 第三行
+
+// 12. 特殊字符和Unicode边缘案例
+set specialUnicode "特殊Unicode: \u{1F600}\u{1F601}\u{1F602}"
+set validUnicode "有效Unicode: \u{1F600}"
+set surrogatePair "代理对: \u{1F600}"
+set isolatedSurrogate "有效Unicode: \u{1F600}"
+
+// 13. 空白字符边缘案例
+set tabChar "tabbed"
+set newlineChar "line1\nline2"
+set carriageReturn "line1\r\nline2"
+set mixedWhitespace "mixed whitespace"
+
+// 14. 转义字符边缘案例
+set backslash "backslash \\"
+set quoteInQuote "quote \"inside\" quote"
+set apostrophe "apostrophe 'inside' apostrophe"
+set braceEscape "brace {escape}"
+set angleEscape "angle \<escape\>"
+
+// 15. 标签边缘案例
+set selfClosingTag "<b/>"
+set emptyTag "<b></b>"
+set validTag "<b>valid</b>"
+set nestedValid "<b><i>valid</i></b>"
+set closedNestedTag "<b><i>text</i></b>"
+set validAttribute "<b>text</b>"
+
+// 16. 表达式边缘案例
+set closedExpr "Expression {1 + 2}"
+set validExpr "Valid {1 + 2}"
+set nestedClosed "Nested {outer {inner}}"
+set emptyExpr "Empty {''}"
+set validOperator "Valid {1 + 2}"
+
+// 17. 变量声明边缘案例
+set validVar "valid"
+const validConst "valid"
+var validVar2 "valid"
+local set validLocal "valid"
+
+// 18. 解构赋值边缘案例
+set [a, b, c] [1, 2, 3]
+set {name, age} {name: "John", age: 25}
+set [...rest] [1, 2, 3]
+set {...props} {name: "John", age: 25}
+
+// 19. 语义操作符边缘案例
+set validSemantic 5 > 3
+set validSemantic2 5 < 10
+set validSemantic3 5 in [1, 2, 3, 4, 5]
+set validSemantic4 5 not in [6, 7, 8]
+
+// 20. 三目运算符边缘案例
+set x 5
+set validTernary x > 0 ? "positive" : "negative"
+set validTernary2 x > 0 ? "positive" : "negative"
+set validTernary3 x > 0 ? "positive" : "negative"
+set validTernary4 x > 0 ? "positive" : "negative"
+
+// 21. 内建对象边缘案例
+set validMath Math.max(1, 2, 3)
+set validDate Date.now()
+set validRandom Random.int(1, 10)
+set validConsole console.log("test")
+
+// 22. 语法糖边缘案例
+set array [1, 2, 3]
+set total 10
+set value 5
+add 5 to array
+sub 3 from total
+mul 2 by value
+div 10 by 2
+insert "item" to array at 0
+remove "item" from array
+
+// 23. 场景定义边缘案例
+scene ValidScene(bg "bg.png") {
+    // valid scene
+}
+
+scene ValidScene2(bg "bg.png") {
+    // valid scene
+}
+
+scene ValidScene3(bg "bg.png") {
+    // valid scene
+}
+
+scene ValidScene4(bg "bg.png") {
+    // valid scene
+}
+
+// 24. 角色定义边缘案例
+character ValidChar "Name" {
+    // valid character
+}
+
+character ValidChar2 "Name" {
+    // valid character
+}
+
+character ValidChar3 "Name" pos (50%, 50%) {
+    // valid character
+}
+
+character ValidChar4 "Name" pos (50%, 50%) {
+    // valid character
+}
+
+// 25. 图像定义边缘案例
+image ValidImg "file.png" {
+    // valid image
+}
+
+image ValidImg2 "file.png" pos (50%, 50%) {
+    // valid image
+}
+
+image ValidImg3 "file.png" pos (50%, 50%) {
+    // valid image
+}
+
+image ValidImg4 "file.png" pos (50%, 50%) scale (1.0, 1.0) {
+    // valid image
+} 

@@ -35,10 +35,15 @@ export function isNewLine(iterator: LexerIterator): number {
 }
 
 export function isNewLineAtIndex(iterator: LexerIterator, index: number): boolean {
+    const text = iterator.getRaw();
+    if (index >= text.length) {
+        return false;
+    }
+    
     const currentChar = iterator.getCharAt(index);
     return (
         currentChar === "\r"
-        ? iterator.getCharAt(index + 1) === "\n"
+        ? index + 1 < text.length && iterator.getCharAt(index + 1) === "\n"
         : currentChar === "\n"
     )
 }

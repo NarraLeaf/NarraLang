@@ -18,6 +18,15 @@ export enum KeywordType {
     Continue,
     Return,
     ForEach,
+
+    Debugger,
+    As,
+    Declare,
+    Satisfy,
+    Class,
+    Private,
+    Public,
+    Throw,
 }
 
 export const Keywords: {
@@ -41,4 +50,13 @@ export const Keywords: {
     [KeywordType.Continue]: "continue",
     [KeywordType.Return]: "return",
     [KeywordType.ForEach]: ["for", "each"],
+
+    [KeywordType.Debugger]: "debugger",
+    [KeywordType.As]: "as",
+    [KeywordType.Declare]: "declare",
+    [KeywordType.Satisfy]: "satisfy",
+    [KeywordType.Class]: "class",
+    [KeywordType.Private]: "private",
+    [KeywordType.Public]: "public",
+    [KeywordType.Throw]: "throw",
 }

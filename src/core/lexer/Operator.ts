@@ -41,6 +41,8 @@ export enum OperatorType {
     LessThan,                    // less than
     GreaterThanOrEqual,          // greater than or equal to
     LessThanOrEqual,             // less than or equal to
+
+    QuestionMark,                // ?
 }
 
 export const Operators: {
@@ -51,7 +53,7 @@ export const Operators: {
     [OperatorType.Asterisk]: "*",
     [OperatorType.Slash]: "/",
     [OperatorType.Percent]: "%",
-    [OperatorType.Exponent]: "**",
+    [OperatorType.Exponent]: "^",
     [OperatorType.LogicalEquals]: "=",
     [OperatorType.LogicalNotEqual]: "!=",
     [OperatorType.LogicalGreaterThan]: ">",
@@ -85,6 +87,8 @@ export const Operators: {
     [OperatorType.LessThan]: ["less", "than"],
     [OperatorType.GreaterThanOrEqual]: ["greater", "than", "or", "equal", "to"],
     [OperatorType.LessThanOrEqual]: ["less", "than", "or", "equal", "to"],
+
+    [OperatorType.QuestionMark]: "?",
 };
 
 export const WhiteSpace = [" ", "\t"];
@@ -94,7 +98,7 @@ export const IdentifierCharacter = /[\p{L}\p{Nl}\p{Nd}\p{Pc}]/u;
 export const IdentifierStartCharacter = /[\p{L}\p{Nl}\p{Pc}]/u;
 export const NumberCharacter = /[\p{Nd}]/u;
 export const EscapeCharacter = /\\/u;
-export const UnicodeCodePointCharacter = /^[0-9A-Fa-f]{1,6}$/;
+export const UnicodeCodePointCharacter = /[0-9A-Fa-f]/;
 export const HexColorCharacter = /^#(?:[0-9A-Fa-f]{3,4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
 export const HexDigitCharacter = /[0-9A-Fa-f]/;
 

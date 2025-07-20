@@ -1,0 +1,399 @@
+// 控制流和函数测试
+
+// 1. 基础函数定义测试
+function simpleFunction() {
+    return "Hello World"
+}
+
+function add(a, b) {
+    return a + b
+}
+
+function multiply(a, b, c) {
+    return a * b * c
+}
+
+function noReturn() {
+    set x 42
+    // 没有return语句
+}
+
+// 2. 宏函数定义测试
+function! macroFunction() {
+    // 宏函数不能有返回值
+}
+
+function! macroWithParams(a, b) {
+    set result a + b
+    // 宏函数不能有返回值
+}
+
+function! macroWithOptions(*options) {
+    set defaultOption "default"
+    if options {
+        set defaultOption options
+    }
+    // 宏函数不能有返回值
+}
+
+// 3. 函数重载测试
+overload function! processData(data) {
+    if data is Array {
+        // 处理数组
+    } else if data is Object {
+        // 处理对象
+    } else {
+        // 处理基本类型
+    }
+}
+
+// 4. 函数清理测试
+function! asyncFunction() {
+    set resource acquireResource()
+    processResource(resource)
+    cleanup {
+        releaseResource(resource)
+    }
+}
+
+// 5. Lambda函数测试
+set lambda1 (x) => x * 2
+set lambda2 (a, b) => a + b
+set lambda3 () => "constant"
+set lambda4 (x) => x * 2 + 1
+
+// 6. 基础条件语句测试
+if x > 0 {
+    set result "positive"
+}
+
+if x > 0 {
+    set result "positive"
+} else {
+    set result "negative"
+}
+
+if x > 0 {
+    set result "positive"
+} else if x < 0 {
+    set result "negative"
+} else {
+    set result "zero"
+}
+
+// 7. 复杂条件语句测试
+if (a > 0) and (b < 10) {
+    set result "valid range"
+} else if (a = 0) or (b = 10) {
+    set result "boundary"
+} else {
+    set result "invalid"
+}
+
+if x is in [1, 2, 3, 4, 5] {
+    set result "in array"
+} else {
+    set result "not in array"
+}
+
+// 8. 循环测试 - loop
+loop 5 times {
+    set counter counter + 1
+}
+
+loop 0 times {
+    // 这个循环不会执行
+    set neverExecuted true
+}
+
+loop 10 times {
+    if counter > 5 {
+        break
+    }
+    set counter counter + 1
+}
+
+// 9. 循环测试 - while（仅函数内）
+function whileTest() {
+    var i 0
+    while i < 10 {
+        set i i + 1
+        if i = 5 {
+            continue
+        }
+        console.log(i)
+    }
+}
+
+// 10. 循环测试 - for each（仅函数内）
+function forEachTest() {
+    var array [1, 2, 3, 4, 5]
+    for each item in array {
+        console.log(item)
+    }
+}
+
+// 11. 循环测试 - for from to（仅函数内）
+function forFromToTest() {
+    for i from 0 to 10 {
+        set sum sum + i
+    }
+}
+
+// 12. 控制语句测试 - break
+function breakTest() {
+    loop 10 times {
+        if counter > 5 {
+            break
+        }
+        set counter counter + 1
+    }
+}
+
+function breakLabelTest() {
+    outer: loop 5 times {
+        inner: loop 3 times {
+            if innerCounter > 1 {
+                break outer
+            }
+        }
+    }
+}
+
+// 13. 控制语句测试 - continue
+function continueTest() {
+    loop 10 times {
+        if counter % 2 = 0 {
+            continue
+        }
+        console.log(counter)
+    }
+}
+
+function continueLabelTest() {
+    outer: loop 5 times {
+        inner: loop 3 times {
+            if innerCounter = 1 {
+                continue outer
+            }
+        }
+    }
+}
+
+// 14. 控制语句测试 - return
+function returnTest() {
+    if condition {
+        return "early return"
+    }
+    set result "normal execution"
+    return result
+}
+
+function returnVoid() {
+    if condition {
+        return
+    }
+    set x 42
+}
+
+// 15. 流程控制测试（场景内）
+scene TestScene() {
+    // 场景内只支持简单的控制流
+    if x > 0 {
+        "x是正数"
+    } else {
+        "x是负数或零"
+    }
+    
+    loop 3 times {
+        "重复消息"
+    }
+    
+    // 场景内不支持while, for, break, continue, return
+}
+
+// 16. 函数调用测试
+function callTest() {
+    set result1 add(1, 2)
+    set result2 multiply(2, 3, 4)
+    set result3 simpleFunction()
+    
+    // 链式调用
+    set result4 add(multiply(2, 3), 1)
+}
+
+// 17. 递归函数测试
+function factorial(n) {
+    if n <= 1 {
+        return 1
+    }
+    return n * factorial(n - 1)
+}
+
+function fibonacci(n) {
+    if n <= 1 {
+        return n
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+// 18. 高阶函数测试
+function map(array, callback) {
+    set result []
+    for each item in array {
+        add callback(item) to result
+    }
+    return result
+}
+
+function filter(array, callback) {
+    set result []
+    for each item in array {
+        if callback(item) {
+            add item to result
+        }
+    }
+    return result
+}
+
+function reduce(array, callback, initial) {
+    set accumulator initial
+    for each item in array {
+        set accumulator callback(accumulator, item)
+    }
+    return accumulator
+}
+
+// 19. 闭包测试
+function createCounter() {
+    set count 0
+    return function() {
+        set count count + 1
+        return count
+    }
+}
+
+function createAdder(x) {
+    return function(y) {
+        return x + y
+    }
+}
+
+// 20. 异步函数测试
+function! asyncTest() {
+    set result1 await fetchData()
+    set result2 await processData(result1)
+    return result2
+}
+
+function! parallelTest() {
+    set promises [fetchData1(), fetchData2(), fetchData3()]
+    set results await Promise.all(promises)
+    return results
+}
+
+// 21. 错误处理测试
+function! errorHandlingTest() {
+    try {
+        set result await riskyOperation()
+        return result
+    } catch error {
+        console.error("Error occurred: " + error)
+        return null
+    } finally {
+        cleanup {
+            // 清理资源
+        }
+    }
+}
+
+// 22. 函数参数测试
+function defaultParams(a, b = 10, c = "default") {
+    return a + b + c
+}
+
+function restParams(first, ...rest) {
+    set result [first]
+    for each item in rest {
+        add item to result
+    }
+    return result
+}
+
+// 23. 函数表达式测试
+set functionExpr function(x) { return x * 2 }
+set arrowExpr (x) => x * 2
+set methodExpr {
+    add: function(a, b) { return a + b },
+    multiply: function(a, b) { return a * b }
+}
+
+// 24. 函数组合测试
+function compose(f, g) {
+    return function(x) {
+        return f(g(x))
+    }
+}
+
+function pipe(...functions) {
+    return function(x) {
+        set result x
+        for each func in functions {
+            set result func(result)
+        }
+        return result
+    }
+}
+
+// 25. 函数性能测试
+function performanceTest() {
+    set startTime Date.now()
+    
+    loop 1000 times {
+        set result factorial(10)
+    }
+    
+    set endTime Date.now()
+    return endTime - startTime
+}
+
+// 26. 函数调试测试
+function debugFunction() {
+    debugger
+    set x 42
+    console.log("Debug: x = " + x)
+    console.warn("Warning: function called")
+    console.error("Error: something went wrong")
+    return x
+}
+
+// 27. 函数边界测试
+function boundaryTest() {
+    // 测试边界条件
+    if arguments.length() = 0 {
+        return "no arguments"
+    }
+    
+    if arguments.length() > 10 {
+        return "too many arguments"
+    }
+    
+    return "valid arguments"
+}
+
+// 28. 函数可读性测试
+function readableFunction(
+    firstName,
+    lastName,
+    age,
+    email
+) {
+    set fullName firstName + " " + lastName
+    set isAdult age >= 18
+    
+    if isAdult {
+        return "Hello " + fullName + ", you are an adult"
+    } else {
+        return "Hello " + fullName + ", you are a minor"
+    }
+} 

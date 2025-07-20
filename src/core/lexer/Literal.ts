@@ -115,6 +115,8 @@ export function tryParseKeyword(possibleTypes: KeywordType[], iterator: LexerIte
             let cache = "", consumed = 0;
 
             iterator.peekUntil((char) => {
+                if (peeked.length >= chars.length) return true; // stop: may be a keyword
+
                 const expected = chars[peeked.length];
                 if (!expected.startsWith(cache)) return true; // stop: mismatch
 

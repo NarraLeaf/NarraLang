@@ -10,6 +10,8 @@ export enum LexerErrorType {
     UnknownError = "UnknownError",
 
     StringParsingError = "StringParsingError",
+    InvalidUnicodeCodePoint = "InvalidUnicodeCodePoint",
+    InvalidEscapeSequence = "InvalidEscapeSequence",
 }
 
 export class LexerError extends Error {

@@ -1,0 +1,215 @@
+// 字符串处理和对话测试
+
+// 1. 基础字符串测试
+set doubleQuote "双引号字符串"
+set singleQuote '单引号字符串'
+set emptyString ""
+set onlySpaces "   "
+set onlyNewlines "\n\n\n"
+
+// 2. 转义字符测试
+set newline "第一行\n第二行"
+set tab "制表符\t分隔"
+set carriageReturn "回车\r换行"
+set backslash "反斜杠\\"
+set doubleQuoteEscape "双引号\"转义"
+set singleQuoteEscape '单引号\'转义'
+set braceEscape "大括号\{转义\}"
+set angleEscape "尖括号\<转义\>"
+
+// 3. Unicode转义测试
+set unicodeBasic "Unicode: \u{0041}\u{0042}\u{0043}"
+set unicodeChinese "中文: \u{4F60}\u{597D}\u{4E16}\u{754C}"
+set unicodeEmoji "表情: \u{1F600}\u{1F601}\u{1F602}"
+set unicodeMixed "混合: A\u{0042}C\u{4F60}E"
+
+// 4. 字符串标签测试 - 粗体
+set boldSimple "<b>粗体文本</b>"
+set boldMixed "普通<b>粗体</b>普通"
+set boldNested "<b>外层<i>内层粗体</i></b>"
+set boldEmpty "<b></b>"
+set boldSelfClosing "<b/>"
+
+// 5. 字符串标签测试 - 斜体
+set italicSimple "<i>斜体文本</i>"
+set italicMixed "普通<i>斜体</i>普通"
+set italicNested "<i>外层<b>内层斜体</b></i>"
+set italicEmpty "<i></i>"
+set italicSelfClosing "<i/>"
+
+// 6. 字符串标签测试 - 颜色
+set colorHex "<#FF0000>红色文本</>"
+set colorHex3 "<#F00>红色文本</>"
+set colorHex4 "<#FF00>红色文本</>"
+set colorHex6 "<#FF0000>红色文本</>"
+set colorHex8 "<#FF0000FF>红色文本</>"
+set colorNamed "<red>红色文本</>"
+set colorMixed "普通<#00FF00>绿色</>普通"
+
+// 7. 字符串标签测试 - 停顿
+set pauseSimple "<pause duration=1000 />"
+set pauseWithText "开始<pause duration=500 />结束"
+set pauseMultiple "第一<pause duration=200 />第二<pause duration=300 />第三"
+set pauseInvalid "<pause duration="invalid" />"
+set pauseMissing "<pause />"
+
+// 8. 字符串标签测试 - 单词
+set wordSimple "<p ruby="注音">单词</p>"
+set wordComplex "<p ruby="复杂的注音文本">复杂单词</p>"
+set wordEmpty "<p ruby="">单词</p>"
+set wordMissing "<p>单词</p>"
+
+// 9. 字符串标签测试 - 混合
+set mixedTags "混合<b>粗体</b><i>斜体</i><#FF0000>红色</>标签"
+set nestedTags "<b>粗体<i>斜体<#00FF00>绿色</></i></b>"
+set complexTags "开始<b>粗体<pause duration=100 />继续</b><i>斜体</i>结束"
+
+// 10. 字符串表达式测试 - 基础
+set name "Alice"
+set age 25
+set exprBasic "姓名: {name}"
+set exprMultiple "姓名: {name}, 年龄: {age}"
+set exprCalc "年龄加10: {age + 10}"
+set exprString "问候: {'Hello ' + name}"
+
+// 11. 字符串表达式测试 - 复杂
+set exprNested "嵌套: {name + '的年龄是' + age}"
+set exprFunction "最大值: {Math.max(1, 2, 3)}"
+set exprConditional "状态: {age > 18 ? '成年' : '未成年'}"
+set exprArray "数组: {[1, 2, 3].join(', ')}"
+
+// 12. 字符串表达式测试 - 混合
+set exprWithTags "混合<b>粗体{name}</b>和<i>斜体{age}</i>"
+set exprWithPause "开始{name}<pause duration=200 />结束"
+set exprWithColor "<#FF0000>红色{name}</><#00FF00>绿色{age}</>"
+
+// 13. 对话测试 - 基础
+character TestChar "测试角色"
+
+TestChar: 这是基础对话
+
+TestChar: 包含<b>标签</b>的对话
+
+TestChar: 包含{name}插值的对话
+
+TestChar: 包含<b>标签</b>和{age}插值的对话
+
+// 14. 对话测试 - 多行
+TestChar: {
+    这是多行对话
+    第二行内容
+    第三行内容
+}
+
+TestChar: {
+    多行对话中的标签：
+    <b>粗体行</b>
+    <i>斜体行</i>
+    <#FF0000>红色行</>
+}
+
+TestChar: {
+    多行对话中的插值：
+    姓名：{name}
+    年龄：{age}
+    计算：{age + 10}
+}
+
+TestChar: {
+    多行对话中的混合：
+    <b>粗体{name}</b>
+    <i>斜体{age}</i>
+    <#FF0000>红色{name + '的年龄是' + age}</>
+}
+
+// 15. 旁白测试
+"这是基础旁白"
+
+"包含<b>标签</b>的旁白"
+
+"包含{name}插值的旁白"
+
+"包含<b>标签</b>和{age}插值的旁白"
+
+// 16. 多行旁白测试
+"unknown": {
+    这是多行旁白
+    第二行内容
+    第三行内容
+}
+
+"unknown": {
+    多行旁白中的标签：
+    <b>粗体行</b>
+    <i>斜体行</i>
+    <#FF0000>红色行</>
+}
+
+"unknown": {
+    多行旁白中的插值：
+    姓名：{name}
+    年龄：{age}
+    计算：{age + 10}
+}
+
+"unknown": {
+    多行旁白中的混合：
+    <b>粗体{name}</b>
+    <i>斜体{age}</i>
+    <#FF0000>红色{name + '的年龄是' + age}</>
+}
+
+// 17. 复杂对话场景
+character Alice "Alice"
+character Bob "Bob"
+character Charlie "Charlie"
+
+Alice: 你好，我是Alice！
+
+Bob: 你好Alice，我是Bob！
+
+Charlie: 大家好，我是Charlie！
+
+Alice: {
+    让我们来测试一下复杂的对话场景
+    包含多种标签和插值
+    <b>粗体强调</b>
+    <i>斜体说明</i>
+    <#FF0000>红色警告</>
+    我的名字是{name}
+    我的年龄是{age}
+}
+
+Bob: {
+    我也来参与测试
+    包含停顿效果：
+    开始<pause duration=500 />
+    继续
+    结束
+}
+
+Charlie: {
+    最后是我的测试
+    包含复杂的表达式：
+    计算结果：{Math.max(1, 2, 3) + Math.min(4, 5, 6)}
+    条件判断：{age > 18 ? '成年' : '未成年'}
+}
+
+"unknown": {
+    这是场景的旁白
+    描述了整个对话过程
+    包含了各种测试元素
+    <b>重要信息</b>
+    <i>补充说明</i>
+    <#00FF00>成功提示</>
+}
+
+// 18. 边缘案例测试
+set closedTag "闭合标签 <b>文本</b>"
+set closedExpression "闭合表达式 {name + age}"
+set validTag "有效标签 <b>文本</b>"
+set validExpression "有效表达式 {name + age}"
+set validOperator "有效操作符 {1 + 2}"
+set nestedClosed "嵌套闭合 <b><i>文本</i></b>"
+set expressionInTag "<b>标签中的表达式 {name}</b>"
+set tagInExpression "表达式中的标签 {name + '标签'}" 

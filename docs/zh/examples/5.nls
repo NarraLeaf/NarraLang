@@ -1,0 +1,198 @@
+// 操作符和表达式测试
+
+// 1. 算术操作符测试
+set addResult 5 + 3
+set subResult 10 - 4
+set mulResult 6 * 7
+set divResult 20 / 4
+set modResult 17 % 5
+set expResult 2 ^ 8
+set negResult -42
+set posResult +3.14
+
+// 2. 比较操作符测试
+set eqResult 5 = 5
+set neResult 5 != 3
+set gtResult 10 > 5
+set gteResult 10 >= 10
+set ltResult 3 < 7
+set lteResult 5 <= 5
+
+// 3. 逻辑操作符测试
+set andResult true and false
+set orResult true or false
+set notResult not true
+set complexLogic (a > 0) and (b < 10) or (c = 0)
+
+// 4. 语义操作符测试
+set isEqual 5 is 5
+set isNotEqual 5 is not 3
+set isGreater 10 is greater than 5
+set isLess 3 is less than 7
+set isGreaterEqual 10 is greater than or equal to 10
+set isLessEqual 5 is less than or equal to 5
+set isIn 3 is in [1, 2, 3, 4, 5]
+set isNotIn 6 is not in [1, 2, 3, 4, 5]
+
+// 5. 三目运算符测试
+set ternaryResult x > 0 ? "positive" : "negative"
+set ifElseResult "positive" if x > 0 else "negative"
+
+// 6. 复杂表达式测试
+set complexExpr (a + b) * (c - d) / (e ^ 2)
+set nestedExpr Math.max(1, Math.min(10, x + y))
+set ternaryNested a > 0 ? (b > 0 ? "both positive" : "only a positive") : "a not positive"
+
+// 7. 操作符优先级测试
+set precedence1 2 + 3 * 4
+set precedence2 (2 + 3) * 4
+set precedence3 2 ^ 3 ^ 2
+set precedence4 (2 ^ 3) ^ 2
+set precedence5 5 + 3 * 2 - 1
+set precedence6 (5 + 3) * (2 - 1)
+
+// 8. 操作符结合性测试
+set associativity1 10 - 5 - 3
+set associativity2 2 ^ 3 ^ 2
+set associativity3 10 / 2 / 5
+set associativity4 1 + 2 + 3 + 4
+
+// 9. 空值合并操作符测试
+set nullish1 null ?? "default"
+set nullish2 undefined ?? "default"
+set nullish3 0 ?? "default"
+set nullish4 "" ?? "default"
+set nullish5 false ?? "default"
+
+// 10. 类型转换测试
+set typeConversion1 "5" + 3
+set typeConversion2 "5" - 3
+set typeConversion3 "5" * 3
+set typeConversion4 "5" / 3
+set typeConversion5 true + 1
+set typeConversion6 false + 1
+
+// 11. 比较操作符边界测试
+set boundary1 0 = 0
+set boundary2 0 != 0
+set boundary3 0 > 0
+set boundary4 0 >= 0
+set boundary5 0 < 0
+set boundary6 0 <= 0
+set boundary7 null = null
+set boundary8 undefined = undefined
+set boundary9 null = undefined
+
+// 12. 逻辑操作符短路测试
+set shortCircuit1 true and (x = 1)
+set shortCircuit2 false and (x = 1)
+set shortCircuit3 true or (x = 1)
+set shortCircuit4 false or (x = 1)
+set shortCircuit5 not (x = 1)
+
+// 13. 语义操作符复杂测试
+set semanticComplex1 5 is greater than 3 and 5 is less than 10
+set semanticComplex2 "hello" is in ["hello", "world"] or "test" is in ["test", "example"]
+set semanticComplex3 10 is greater than or equal to 10 and 10 is less than or equal to 10
+
+// 14. 三目运算符嵌套测试
+set ternaryNested1 a > 0 ? (b > 0 ? "both positive" : "only a positive") : "a not positive"
+set ternaryNested2 x > 0 ? "positive" : (y > 0 ? "y positive" : "both negative")
+set ternaryNested3 a > 0 ? (b > 0 ? (c > 0 ? "all positive" : "a and b positive") : "only a positive") : "a not positive"
+
+// 15. 函数调用表达式测试
+set funcCall1 Math.max(1, 2, 3)
+set funcCall2 Math.min(1, 2, 3)
+set funcCall3 Math.abs(-5)
+set funcCall4 Math.floor(3.7)
+set funcCall5 Math.ceil(3.2)
+set funcCall6 Math.round(3.5)
+set funcCall7 Math.pow(2, 8)
+set funcCall8 Math.sqrt(16)
+
+// 16. 数组和对象访问测试
+set arrayAccess1 arr[0]
+set arrayAccess2 arr[arr.length() - 1]
+set arrayAccess3 arr[Math.floor(arr.length() / 2)]
+set objectAccess1 obj.property
+set objectAccess2 obj["property"]
+set objectAccess3 obj[computedKey]
+
+// 17. 链式操作测试
+set chained1 arr.length().toString()
+set chained2 obj.property.method()
+set chained3 Math.max(1, 2, 3).toString()
+set chained4 [1, 2, 3].map(x => x * 2).filter(x => x > 2)
+
+// 18. 条件表达式测试
+set conditional1 if x > 0 then "positive" else "negative"
+set conditional2 if a > 0 and b > 0 then "both positive" else "not both positive"
+set conditional3 if x is in [1, 2, 3] then "in array" else "not in array"
+
+// 19. 操作符重载测试
+set overload1 "hello" + " " + "world"
+set overload2 [1, 2] + [3, 4]
+set overload3 {a: 1} + {b: 2}
+set overload4 "hello" * 3
+set overload5 [1, 2, 3] * 2
+
+// 20. 特殊操作符测试
+set special1 5 ^ 3
+set special2 5 ^ 3
+set special3 5 ?? 3
+set special4 5 * 3
+set special5 5 * 3
+set special6 "hello"
+
+// 21. 位操作符测试（如果支持）
+set bitwise1 5 * 3
+set bitwise2 5 * 3
+set bitwise3 5 * 3
+set bitwise4 5 * 3
+set bitwise5 5 * 3
+set bitwise6 5 * 3
+set bitwise7 5 * 3
+
+// 22. 赋值操作符测试
+set assign1 x = 5
+set assign2 x = x + 3
+set assign3 x = x - 2
+set assign4 x = x * 4
+set assign5 x = x / 2
+set assign6 x = x % 3
+set assign7 x = x * x
+
+// 23. 递增递减操作符测试
+set increment1 x = x + 1
+set increment2 x = x + 1
+set decrement1 x = x - 1
+set decrement2 x = x - 1
+
+// 24. 逗号操作符测试
+set comma1 a + b
+set comma2 x + y
+
+// 25. 操作符错误处理测试
+set error1 5 / 0
+set error2 0 ^ 0
+set error3 1 ^ Infinity
+set error4 Math.sqrt(-1)
+set error5 Math.log(0)
+set error6 Math.asin(2)
+
+// 26. 表达式性能测试
+set performance1 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10
+set performance2 Math.max(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+set performance3 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].reduce((a, b) => a + b, 0)
+
+// 27. 表达式可读性测试
+set readable1 (a + b) * (c + d)
+set readable2 Math.max(a, Math.min(b, c))
+set readable3 (x > 0) and (y > 0) and (z > 0)
+set readable4 (condition1 and condition2) or (condition3 and condition4)
+
+// 28. 表达式调试测试
+set debug1 console.log("Debug: " + x)
+set debug2 console.warn("Warning: " + y)
+set debug3 console.error("Error: " + z)
+set debug4 debugger 
