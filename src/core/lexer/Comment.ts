@@ -33,3 +33,12 @@ export function isNewLine(iterator: LexerIterator): number {
         : currentChar === "\n" ? 1 : 0
     )
 }
+
+export function isNewLineAtIndex(iterator: LexerIterator, index: number): boolean {
+    const currentChar = iterator.getCharAt(index);
+    return (
+        currentChar === "\r"
+        ? iterator.getCharAt(index + 1) === "\n"
+        : currentChar === "\n"
+    )
+}

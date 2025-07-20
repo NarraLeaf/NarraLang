@@ -1,4 +1,5 @@
 import { isNewLine, parseComment } from "./Comment";
+import { parseDialogue } from "./Dialogue";
 import { parseIdentifier } from "./Identifier";
 import { Keywords } from "./Keyword";
 import { LexerError } from "./LexerError";
@@ -6,9 +7,18 @@ import type { LexerIterator } from "./LexerIterator";
 import { getPossibleKeywords, parseBooleanLiteral, parseNullLiteral, parseNumberLiteral, tryParseKeyword } from "./Literal";
 import { getPossibleOperators, IdentifierStartCharacter, Operators, tryParseOperator, WhiteSpace } from "./Operator";
 import { parseStringTokens, QuotationMarks } from "./String";
-import { Tokens, TokenType } from "./TokenType";
+import { ParseTokenFn, ParseTokenFnOptions, Tokens, TokenType } from "./TokenType";
 
-export function parseToken(iterator: LexerIterator): Tokens | LexerError | null {
+const defaultOptions: ParseTokenFnOptions = {
+    allowDialogue: true,
+};
+const buildTokenParser = (options: ParseTokenFnOptions): ParseTokenFn => {
+    return (iterator, opt) => parseToken(iterator, { ...options, ...opt });
+};
+
+export function parseToken(iterator: LexerIterator, opt?: ParseTokenFnOptions): Tokens | LexerError | null {
+    const options = { ...defaultOptions, ...opt };
+    const parser = buildTokenParser(options);
     const currentChar = iterator.getCurrentChar();
     const startIndex = iterator.getIndex();
 
@@ -28,6 +38,14 @@ export function parseToken(iterator: LexerIterator): Tokens | LexerError | null 
     if (newLine > 0) {
         iterator.next(newLine);
         return { type: TokenType.NewLine, start: startIndex, end: startIndex + newLine - 1 };
+    }
+
+    // Dialogue (must be before other token types to avoid conflicts)
+    if (options.allowDialogue) {
+        const dialogueToken = parseDialogue(iterator, parser);
+        if (dialogueToken) {
+            return dialogueToken;
+        }
     }
 
     // Number Literal
@@ -81,7 +99,7 @@ export function parseToken(iterator: LexerIterator): Tokens | LexerError | null 
         const quotationMark = currentChar;
         iterator.next(); // Skip the quotation mark.
 
-        const stringToken = parseStringTokens(iterator, { EOS: [quotationMark] }, parseToken);
+        const stringToken = parseStringTokens(iterator, { EOS: [quotationMark] }, parser);
         if (stringToken) {
             if (LexerError.isLexerError(stringToken)) {
                 return stringToken;

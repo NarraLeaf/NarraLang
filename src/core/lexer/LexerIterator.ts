@@ -86,10 +86,18 @@ export type LexerIterator = {
     getRaw(): string;
 
     /**
-     * Get the current line of the cursor.
-     * @returns The current line of the cursor.
+     * Get the line content at the given line number.
+     * @param n The line number to get.
+     * @returns The line content at the given line number.
      */
     getLine(n: number): string;
+
+    /**
+     * Get the character at the given index.
+     * @param index The index of the character to get.
+     * @returns The character at the given index.
+     */
+    getCharAt(index: number): string;
 };
 
 export function createLexerIterator(raw: string): LexerIterator {
@@ -174,6 +182,7 @@ export function createLexerIterator(raw: string): LexerIterator {
     const getIndex = () => index;
     const getRaw = () => raw;
     const getLine = (n: number) => raw.slice(0, index).split("\n")[n];
+    const getCharAt = (index: number) => raw[index];
 
     return {
         getCurrentChar,
@@ -189,5 +198,6 @@ export function createLexerIterator(raw: string): LexerIterator {
         getIndex,
         getRaw,
         getLine,
+        getCharAt,
     };
 }

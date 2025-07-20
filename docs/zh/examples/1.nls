@@ -7,7 +7,9 @@ scene Scene1(
 ) {
     show Nomina duration 1.0 // awa
 
-    "我是旁白"
+    "我是<pause duration=100 />旁白"
+
+    "这段文本中包含<b>粗体字</>和<i>斜体字</>"
 
     hide Nomina duration 1.0
 }

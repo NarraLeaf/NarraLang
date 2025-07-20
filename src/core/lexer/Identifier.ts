@@ -1,17 +1,18 @@
 import { IdentifierCharacter, IdentifierStartCharacter } from "./Operator";
 import type { LexerIterator } from "./LexerIterator";
 import { TokenType, TokenTrace } from "./TokenType";
+import { LexerError, LexerErrorType } from "./LexerError";
 
 
 export function parseIdentifier(iterator: LexerIterator): {
     type: TokenType.Identifier,
     value: string,
-} & TokenTrace | null {
+} & TokenTrace | LexerError {
     const startIndex = iterator.getIndex();
     const currentChar = iterator.getCurrentChar();
 
     if (!IdentifierStartCharacter.test(currentChar)) {
-        return null;
+        return new LexerError(LexerErrorType.UnexpectedToken, `Unexpected token when parsing identifier: ${currentChar}`, iterator.getIndex());
     }
 
     let identifier = "";
@@ -24,7 +25,7 @@ export function parseIdentifier(iterator: LexerIterator): {
     });
 
     if (!success) {
-        return null;
+        return new LexerError(LexerErrorType.UnknownError, `Unknown error when parsing identifier.`, iterator.getIndex());
     }
 
     return { type: TokenType.Identifier, value: identifier, start: startIndex, end: iterator.getIndex() - 1 };

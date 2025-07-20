@@ -6,7 +6,7 @@ import { LexerError, LexerErrorType } from "./LexerError";
 import { LexerIterator } from "./LexerIterator";
 import { parseNumberLiteral } from "./Literal";
 import { EscapeCharacter, HexColorCharacter, HexDigitCharacter, IdentifierCharacter, IdentifierStartCharacter, LanguageCharacter, UnicodeCodePointCharacter, WhiteSpace } from "./Operator";
-import type { Tokens } from "./TokenType";
+import { ParseTokenFn, type Tokens } from "./TokenType";
 
 export enum StringTokenType {
     String,
@@ -32,13 +32,13 @@ export enum StringTagType {
     Word,
 }
 export enum TagOperatorType {
-    LeftAngleBracket,
-    RightAngleBracket,
-    Equals,
-    LeftBrace,
-    RightBrace,
-    Hash,
-    Slash,
+    LeftAngleBracket,     // <
+    RightAngleBracket,    // >
+    Equals,               // =
+    LeftBrace,            // {
+    RightBrace,           // }
+    Hash,                 // #
+    Slash,                // /
 }
 export const TagOperators: {
     [K in TagOperatorType]: string | string[];
@@ -86,7 +86,7 @@ export interface StringParserConfig {
 export function parseStringTokens(
     iterator: LexerIterator,
     { EOS }: StringParserConfig,
-    parseTokenFn: (iterator: LexerIterator) => Tokens | LexerError | null,
+    parseTokenFn: ParseTokenFn,
 ): StringToken[] | LexerError | null {
     const tokens: StringToken[] = [];
 
@@ -122,7 +122,7 @@ export function parseStringTokens(
 
         if (currentChar === TagOperators[TagOperatorType.LeftAngleBracket]) {
             const token = tryParseTag(iterator);
-            if (!token) return null;
+            if (!token || LexerError.isLexerError(token)) return token;
 
             tokens.push(token);
             continue;
@@ -165,7 +165,7 @@ export function parseStringTokens(
     return new LexerError(LexerErrorType.UnclosedString, `Unclosed string. ${EOS.map((eol) => JSON.stringify(eol)).join(", ")} expected, but found the end of script. StringCache: ${JSON.stringify(stringCache)}`, iterator.getIndex() - 1);
 }
 
-function tryParseTag(iterator: LexerIterator): StringToken | null {
+function tryParseTag(iterator: LexerIterator): StringToken | LexerError | null {
     const currentChar = iterator.getCurrentChar();
     if (currentChar !== TagOperators[TagOperatorType.LeftAngleBracket]) {
         return null;
@@ -174,10 +174,12 @@ function tryParseTag(iterator: LexerIterator): StringToken | null {
 
     iterator.skipWhiteSpace(); // skip whitespace
     if (iterator.getCurrentChar() === TagOperators[TagOperatorType.Slash]) {
-        if (iterator.peekChar() !== TagOperators[TagOperatorType.RightAngleBracket]) {
-            return null;
-        }
         iterator.next(); // skip "/"
+        iterator.skipWhiteSpace(); // skip whitespace
+
+        if (iterator.getCurrentChar() !== TagOperators[TagOperatorType.RightAngleBracket]) {
+            return new LexerError(LexerErrorType.UnclosedTag, "Unclosed tag. Expected '>'.", iterator.getIndex());
+        }
 
         return iterator.consume({
             type: StringTokenType.CloseTag,
@@ -185,16 +187,16 @@ function tryParseTag(iterator: LexerIterator): StringToken | null {
     }
 
     const tagType = parseTagName(iterator);
-    if (!tagType) return null;
+    if (LexerError.isLexerError(tagType)) return tagType;
 
     const properties = parseProperty(iterator);
-    if (!properties) return null;
+    if (LexerError.isLexerError(properties)) return properties;
 
     const closed = iterator.getCurrentChar() === TagOperators[TagOperatorType.Slash];
     if (closed) iterator.next(); // skip "/"
 
     if (iterator.getCurrentChar() !== TagOperators[TagOperatorType.RightAngleBracket]) {
-        return null;
+        return new LexerError(LexerErrorType.UnclosedTag, "Unclosed tag. Expected '>'.", iterator.getIndex());
     }
     iterator.next(); // skip ">"
 
@@ -209,12 +211,8 @@ function tryParseTag(iterator: LexerIterator): StringToken | null {
     };
 }
 
-function parseTagName(iterator: LexerIterator): RawStringTag | null {
+function parseTagName(iterator: LexerIterator): RawStringTag | LexerError {
     const currentChar = iterator.getCurrentChar();
-    if (currentChar !== TagOperators[TagOperatorType.Hash]) {
-        return null;
-    }
-    iterator.next(); // skip "#"
 
     if (currentChar === TagOperators[TagOperatorType.Hash]) {
         iterator.next(); // skip "#"
@@ -224,12 +222,20 @@ function parseTagName(iterator: LexerIterator): RawStringTag | null {
             }
             return false;
         });
-        if (!hexColor?.length || !HexColorCharacter.test(hexColor)) return null;
+        if (!hexColor?.length || !HexColorCharacter.test(hexColor)) return new LexerError(
+            LexerErrorType.UnexpectedToken,
+            `Unexpected token when parsing tag. Expected hex color, but found ${iterator.getCurrentChar()}`,
+            iterator.getIndex()
+        );
         if (![
             ...WhiteSpace,
             TagOperators[TagOperatorType.RightAngleBracket],
             TagOperators[TagOperatorType.Slash],
-        ].includes(iterator.getCurrentChar())) return null;
+        ].includes(iterator.getCurrentChar())) return new LexerError(
+            LexerErrorType.UnexpectedToken,
+            `Unexpected token when parsing tag. Expected end of tag, but found ${iterator.getCurrentChar()}`,
+            iterator.getIndex()
+        );
 
         iterator.next(hexColor.length); // skip hexColor
 
@@ -243,22 +249,30 @@ function parseTagName(iterator: LexerIterator): RawStringTag | null {
             }
             return false;
         });
-        if (!tagName?.length || !WhiteSpace.includes(iterator.getCurrentChar())) return null;
+        if (!tagName?.length) return new LexerError(
+            LexerErrorType.UnexpectedToken,
+            `Unexpected token when parsing tag. Expected end of tag, but found ${iterator.getCurrentChar()}`,
+            iterator.getIndex()
+        );
 
         const tagType = getTagType(tagName);
-        if (!tagType) return null;
+        if (!tagType) return new LexerError(LexerErrorType.UnknownTag, `Unknown tag: ${tagName}`, iterator.getIndex());
         iterator.next(tagName.length); // skip tagName
 
         if (![
             ...WhiteSpace,
             TagOperators[TagOperatorType.RightAngleBracket],
             TagOperators[TagOperatorType.Slash],
-        ].includes(iterator.getCurrentChar())) return null;
+        ].includes(iterator.getCurrentChar())) return new LexerError(
+            LexerErrorType.UnexpectedToken,
+            `Unexpected token when parsing tag. Expected end of tag, but found ${iterator.getCurrentChar()}`,
+            iterator.getIndex()
+        );
 
         return tagType;
     }
 
-    return null;
+    return new LexerError(LexerErrorType.UnknownTag, `Unknown tag: ${currentChar}`, iterator.getIndex());
 }
 
 function getTagType(tagName: string): RawStringTag | null {
@@ -285,7 +299,7 @@ function getTagType(tagName: string): RawStringTag | null {
     return null;
 }
 
-function parseProperty(iterator: LexerIterator): Record<string, string | number> | null {
+function parseProperty(iterator: LexerIterator): Record<string, string | number> | LexerError {
     const properties: Record<string, string | number> = {};
 
     while (!iterator.isDone()) {
@@ -304,11 +318,11 @@ function parseProperty(iterator: LexerIterator): Record<string, string | number>
 
         if (IdentifierStartCharacter.test(currentChar)) {
             const parsedIdentifier = parseIdentifier(iterator);
-            if (!parsedIdentifier) return null;
+            if (LexerError.isLexerError(parsedIdentifier)) return parsedIdentifier;
 
             const identifier = parsedIdentifier.value;
             if (iterator.skipWhiteSpace() !== TagOperators[TagOperatorType.Equals]) {
-                return null;
+                return new LexerError(LexerErrorType.UnexpectedToken, `Expected '=' after identifier, but found ${iterator.getCurrentChar()}`, iterator.getIndex());
             }
             iterator.next(); // skip "="
 
@@ -324,22 +338,26 @@ function parseProperty(iterator: LexerIterator): Record<string, string | number>
                     parsedValue = flowString(iterator, [quote], quote);
                 }
             }
-            if (!parsedValue) return null;
+            if (!parsedValue) return new LexerError(LexerErrorType.StringParsingError, `The tag property value is not a number or string.`, iterator.getIndex());
 
             if (shoudClose) {
                 if (iterator.getCurrentChar() !== TagOperators[TagOperatorType.RightBrace]) {
-                    return null;
+                    return new LexerError(LexerErrorType.UnclosedTag, "Unclosed tag. Expected '}'.", iterator.getIndex());
                 }
                 iterator.next(); // skip "}"
             }
 
             properties[identifier] = parsedValue;
         } else {
-            return null;
+            return new LexerError(
+                LexerErrorType.UnexpectedToken,
+                `Unexpected token when parsing tag. Expected identifier, but found ${iterator.getCurrentChar()}`,
+                iterator.getIndex()
+            );
         }
     }
 
-    return null;
+    return properties;
 }
 
 function flowString(iterator: LexerIterator, startChar: string[] | null, endChar: string): string | null {
