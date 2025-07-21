@@ -25,7 +25,7 @@ function runTest(fileName: string, description: string) {
     console.log(`${"=".repeat(60)}`);
     
     try {
-        const filePath = path.join(__dirname, "../../docs/zh/examples", fileName);
+        const filePath = path.join(__dirname, "./examples", fileName);
         const raw = fs.readFileSync(filePath, "utf-8");
         
         console.log(`文件大小: ${raw.length} 字符`);
@@ -91,7 +91,7 @@ async function runAllTests() {
     
     for (const testFile of testFiles) {
         try {
-            const filePath = path.join(__dirname, "../../docs/zh/examples", testFile.name);
+            const filePath = path.join(__dirname, "./examples", testFile.name);
             const raw = fs.readFileSync(filePath, "utf-8");
             const tokens = lexer(raw);
             

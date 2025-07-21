@@ -132,7 +132,7 @@ export function isDialogue(iterator: LexerIterator): boolean {
     let lineStartIndex = startIndex;
     while (lineStartIndex > 0) {
         const prevChar = text[lineStartIndex - 1];
-        if (prevChar === '\n' || prevChar === '\r') {
+        if (prevChar === "\n" || prevChar === "\r") {
             break;
         }
         lineStartIndex--;

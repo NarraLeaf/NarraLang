@@ -31,7 +31,7 @@ export function isNewLine(iterator: LexerIterator): number {
         currentChar === "\r"
         ? iterator.peekChar() === "\n" ? 2 : 1
         : currentChar === "\n" ? 1 : 0
-    )
+    );
 }
 
 export function isNewLineAtIndex(iterator: LexerIterator, index: number): boolean {
@@ -45,5 +45,5 @@ export function isNewLineAtIndex(iterator: LexerIterator, index: number): boolea
         currentChar === "\r"
         ? index + 1 < text.length && iterator.getCharAt(index + 1) === "\n"
         : currentChar === "\n"
-    )
+    );
 }

@@ -59,4 +59,4 @@ export const Keywords: {
     [KeywordType.Private]: "private",
     [KeywordType.Public]: "public",
     [KeywordType.Throw]: "throw",
-}
+};

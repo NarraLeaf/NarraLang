@@ -49,7 +49,7 @@ export const TagOperators: {
     [TagOperatorType.RightBrace]: "}",
     [TagOperatorType.Hash]: "#",
     [TagOperatorType.Slash]: "/",
-}
+};
 
 /* Escape */
 const EscapeMap: Record<string, string> = {
@@ -64,7 +64,7 @@ const EscapeMap: Record<string, string> = {
     "}": "}",
     "<": "<",
     ">": ">",
-}
+};
 
 export type StringTag = RawStringTag & {
     properties: Record<string, string | number> | null,
@@ -98,7 +98,7 @@ export function parseStringTokens(
             });
             stringCache = "";
         }
-    }
+    };
 
     while (!iterator.isDone()) {
         const currentChar = iterator.getCurrentChar();
@@ -249,7 +249,6 @@ function parseTagName(iterator: LexerIterator): RawStringTag | LexerError {
     if (currentChar === TagOperators[TagOperatorType.Hash]) {
         iterator.next(); // skip "#"
         let hexColor = "";
-        let consumed = 0;
         
         while (!iterator.isDone()) {
             const char = iterator.getCurrentChar();
@@ -257,7 +256,6 @@ function parseTagName(iterator: LexerIterator): RawStringTag | LexerError {
                 break;
             }
             hexColor += char;
-            consumed++;
             iterator.next();
         }
         
@@ -377,7 +375,7 @@ function parseProperty(iterator: LexerIterator): Record<string, string | number>
             }
             iterator.next(); // skip "="
 
-            let shoudClose = iterator.getCurrentChar() === TagOperators[TagOperatorType.LeftBrace];
+            const shoudClose = iterator.getCurrentChar() === TagOperators[TagOperatorType.LeftBrace];
             if (shoudClose) {
                 iterator.next(); // skip "{"
             }
@@ -390,12 +388,12 @@ function parseProperty(iterator: LexerIterator): Record<string, string | number>
 
                     if (LexerError.isLexerError(flowed)) return flowed;
                     if (flowed === null) {
-                        return new LexerError(LexerErrorType.StringParsingError, `Unclosed string in tag property.`, iterator.getIndex());
+                        return new LexerError(LexerErrorType.StringParsingError, "Unclosed string in tag property.", iterator.getIndex());
                     }
                     parsedValue = flowed;
                 }
             }
-            if (parsedValue === null) return new LexerError(LexerErrorType.StringParsingError, `The tag property value is not a number or string.`, iterator.getIndex());
+            if (parsedValue === null) return new LexerError(LexerErrorType.StringParsingError, "The tag property value is not a number or string.", iterator.getIndex());
 
             if (shoudClose) {
                 if (iterator.getCurrentChar() !== TagOperators[TagOperatorType.RightBrace]) {
@@ -474,7 +472,6 @@ function tryEscape(iterator: LexerIterator): {
         iterator.next(); // skip "{"
 
         let codepoint = "";
-        let consumed = 0;
         
         while (!iterator.isDone()) {
             const char = iterator.getCurrentChar();
@@ -482,7 +479,6 @@ function tryEscape(iterator: LexerIterator): {
                 break;
             }
             codepoint += char;
-            consumed++;
             iterator.next();
         }
         

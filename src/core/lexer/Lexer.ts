@@ -12,8 +12,6 @@ export function lexer(raw: string): Tokens[] | LexerError {
         if (!token) continue;
 
         if (LexerError.isLexerError(token)) {
-            const { line, offset, lineContent } = token.getLineInfo(raw);
-            console.error(`[Lexer Error] ${token.message} at line ${line}\n${lineContent}\n${" ".repeat(offset)}^`);
             return token;
         }
 
@@ -23,3 +21,7 @@ export function lexer(raw: string): Tokens[] | LexerError {
     return tokens;
 }
 
+export function toErrorMessage(error: LexerError, raw: string): string {
+    const { line, offset, lineContent } = error.getLineInfo(raw);
+    return `[Lexer Error] ${error.message} at line ${line}\n${lineContent}\n${" ".repeat(offset)}^`;
+}

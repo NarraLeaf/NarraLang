@@ -25,7 +25,7 @@ export function parseIdentifier(iterator: LexerIterator): {
     });
 
     if (!success) {
-        return new LexerError(LexerErrorType.UnknownError, `Unknown error when parsing identifier.`, iterator.getIndex());
+        return new LexerError(LexerErrorType.UnknownError, "Unknown error when parsing identifier.", iterator.getIndex());
     }
 
     return { type: TokenType.Identifier, value: identifier, start: startIndex, end: iterator.getIndex() - 1 };

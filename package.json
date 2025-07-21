@@ -20,7 +20,9 @@
         "watch": "node project/esbuild.js --watch & tsc --emitDeclarationOnly --watch",
         "debug": "node --inspect-brk --loader ts-node/esm --no-warnings src/index.ts",
         "prepublishOnly": "npm run build",
-        "test": "tsx test/lexer/1.ts"
+        "test": "tsx test/lexer/1.ts",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix"
     },
     "keywords": [
         "visual-novel",
@@ -33,7 +35,10 @@
     "peerDependencies": {},
     "devDependencies": {
         "@types/node": "^20.11.18",
+        "@typescript-eslint/eslint-plugin": "^8.37.0",
+        "@typescript-eslint/parser": "^8.37.0",
         "esbuild": "^0.25.6",
+        "eslint": "^9.31.0",
         "narraleaf-react": "^0.7.0",
         "ts-node": "^10.9.2",
         "tsc-alias": "^1.8.16",

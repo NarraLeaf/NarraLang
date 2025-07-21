@@ -37,7 +37,7 @@ export class LexerError extends Error {
      */
     private splitLines(text: string): string[] {
         // Normalize line endings to \n first, then split
-        return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+        return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
     }
 
     /**
@@ -117,7 +117,7 @@ export class LexerError extends Error {
      */
     public getInlineOffset(raw: string): number {
         const lines = this.splitLines(raw.slice(0, this.index));
-        const currentLine = lines[lines.length - 1] ?? '';
+        const currentLine = lines[lines.length - 1] ?? "";
         return this.getVisualWidth(currentLine);
     }
 
@@ -134,7 +134,7 @@ export class LexerError extends Error {
         const line = this.getLine(raw);
         const offset = this.getInlineOffset(raw);
         const lines = this.splitLines(raw);
-        const lineContent = lines[line - 1] ?? ''; // Convert to 0-based index for array access
+        const lineContent = lines[line - 1] ?? ""; // Convert to 0-based index for array access
 
         return {
             line,
@@ -153,18 +153,18 @@ export class LexerError extends Error {
         const error = new Error(`${this.message} (line ${line}, offset ${offset})`);
 
         // Create visual pointer that accounts for character widths
-        let pointer = '';
+        let pointer = "";
         let currentWidth = 0;
         for (const char of lineContent) {
             const charWidth = this.getVisualWidth(char);
             if (currentWidth < offset) {
-                pointer += ' '.repeat(charWidth);
+                pointer += " ".repeat(charWidth);
                 currentWidth += charWidth;
             } else {
                 break;
             }
         }
-        pointer += '^';
+        pointer += "^";
 
         error.stack = `${error.stack}\n${lineContent}\n${pointer}`;
         error.name = this.type.toString();

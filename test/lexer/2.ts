@@ -4,11 +4,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { LexerError } from "../../src/core/lexer/LexerError";
 import util from "util";
+import { toErrorMessage } from "../../src/core/lexer/Lexer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const raw = fs.readFileSync(path.join(__dirname, "../../docs/zh/examples/2.nls"), "utf-8");
+const raw = fs.readFileSync(path.join(__dirname, "./examples/2.nls"), "utf-8");
 
 console.log("=== 测试文件 2.nls - 全面数据类型和语法特性 ===");
 const tokens = lexer(raw);
@@ -32,4 +33,5 @@ if (!LexerError.isLexerError(tokens)) {
 } else {
     console.log("词法分析失败:");
     console.log(util.inspect(tokens, { depth: null, colors: true }));
+    console.error(toErrorMessage(tokens, raw));
 } 
