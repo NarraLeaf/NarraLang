@@ -7,7 +7,7 @@ export enum KeywordType {
     Function,
     Macro,
     Cleanup,
-    Overload,
+    Await,
 
     If,
     Else,
@@ -39,8 +39,8 @@ export const Keywords: {
     [KeywordType.Function]: "function",
     [KeywordType.Macro]: "function!",
     [KeywordType.Cleanup]: "cleanup",
-    [KeywordType.Overload]: "overload",
-
+    [KeywordType.Await]: "await",
+    
     [KeywordType.If]: "if",
     [KeywordType.Else]: "else",
     [KeywordType.While]: "while",

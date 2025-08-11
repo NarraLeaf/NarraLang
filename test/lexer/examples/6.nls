@@ -37,7 +37,7 @@ function! macroWithOptions(*options) {
 }
 
 // 3. 函数重载测试
-overload function! processData(data) {
+function! processData(data) {
     if data is Array {
         // 处理数组
     } else if data is Object {

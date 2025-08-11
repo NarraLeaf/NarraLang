@@ -1,6 +1,9 @@
 
 export enum ParserContextType {
-    Procedure,
+    Statement,
     Expression,
+    Procedure,
+
+    Root,
 }
 
