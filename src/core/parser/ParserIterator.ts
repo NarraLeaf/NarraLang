@@ -7,7 +7,7 @@ type ParserIteratorResult = [node: ParsedNode, token: Tokens];
 export type ParserIterator = {
     getParsed(): ParserIteratorResult[];
     getContext(): ParserContextStack;
-    getTokens(): Tokens[];
+    getRemainingTokens(): Tokens[];
 
     push(node: ParsedNode, token: Tokens): void;
     popParsed(): ParserIteratorResult | null;
@@ -18,9 +18,10 @@ export type ParserIterator = {
     peekToken(offset?: number): Tokens | null;
     popToken(): Tokens | null;
     popTokenIf(fn: (token: Tokens) => boolean): Tokens | null;
-    consume(node: ParsedNode): void;
+    consume(node?: ParsedNode): Tokens | null;
 
     getResult(): ParsedNode[];
+    isDone(): boolean;
 };
 
 export function createParserIterator(tokens: Tokens[]): ParserIterator {
@@ -28,14 +29,12 @@ export function createParserIterator(tokens: Tokens[]): ParserIterator {
     const ctx = new ParserContextStack();
     const result: ParserIteratorResult[] = [];
 
-    let currentToken: Tokens | null = null;
-    const updateCurrentToken = () => {
-        currentToken = cache.at(-1) ?? null;
-    };
+    let index = 0;
+    let currentToken: Tokens | null = cache[index] ?? null;
 
     const getParsed = () => { return result; };
     const getContext = () => { return ctx; };
-    const getTokens = () => { return cache; };
+    const getRemainingTokens = () => { return cache.slice(index); };
 
     const push = (node: ParsedNode, token: Tokens) => {
         result.push([node, token]);
@@ -59,8 +58,19 @@ export function createParserIterator(tokens: Tokens[]): ParserIterator {
     };
 
     const getCurrentToken = () => { return currentToken; };
-    const peekToken = (offset: number = 1) => { return cache.at(-offset) ?? null; };
-    const popToken = () => { return cache.pop() ?? null; };
+    const peekToken = (offset: number = 1) => {
+        // 1-based from current position for backward compatibility
+        return cache[index + offset - 1] ?? null; 
+    };
+    const popToken = () => { 
+        if (index >= cache.length) {
+            return null;
+        }
+        const token = cache[index];
+        index += 1;
+        currentToken = cache[index] ?? null;
+        return token ?? null;
+    };
     const popTokenIf = (fn: (token: Tokens) => boolean) => {
         const peek = peekToken();
         if (!peek) {
@@ -72,23 +82,36 @@ export function createParserIterator(tokens: Tokens[]): ParserIterator {
 
         return null;
     };
-    const consume = (node: ParsedNode) => {
+    const consume = (node?: ParsedNode) => {
         if (!currentToken) {
-            throw new Error("No current token");
+            throw new Error("No current token to consume");
         }
 
-        result.push([node, currentToken]);
-        updateCurrentToken();
+        const consumedToken = currentToken;
+
+        if (node) {
+            result.push([node, consumedToken]);
+        }
+
+        // Move to next token using pointer
+        index += 1;
+        currentToken = cache[index] ?? null;
+
+        return consumedToken;
     };
 
     const getResult = () => {
         return result.map(([node]) => node);
     };
 
+    const isDone = () => {
+        return index >= cache.length;
+    };
+
     return {
         getParsed,
         getContext,
-        getTokens,
+        getRemainingTokens,
         push,
         popParsed,
         popParsedIf,
@@ -99,5 +122,6 @@ export function createParserIterator(tokens: Tokens[]): ParserIterator {
         popTokenIf,
         consume,
         getResult,
+        isDone,
     };
 }

@@ -50,19 +50,22 @@ export enum NodeType {
 
 export interface NodeTrace {
     start: number;
-    end: number;
+    end: number | null;
 }
 
 export interface BaseNode {
     type: NodeType;
     trace: NodeTrace;
-    parent: BaseNode | null;
 }
 
 export interface ExpressionNode extends BaseNode {
+    children: BaseNode[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface StatementNode extends BaseNode {
 }
 
 export type ParsedNode = ExpressionNode | StatementNode;
+
+

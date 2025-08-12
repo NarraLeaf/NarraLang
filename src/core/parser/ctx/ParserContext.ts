@@ -1,4 +1,3 @@
-import { MatcherDefinition } from "../Matcher";
 import { ParserContextType } from "./ParserContextType";
 
 export interface ParserContextDefinition {

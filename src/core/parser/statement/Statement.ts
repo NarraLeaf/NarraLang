@@ -1,12 +1,12 @@
 import { ExpressionNode, NodeType, StatementNode } from "../Node";
 
-type VariableDeclaration = {
-    type: "set" | "const";
+export type VariableDeclaration = {
     name: string;
     value: ExpressionNode;
 };
 interface VariableDeclarationNode extends StatementNode {
     type: NodeType.VariableDeclaration;
+    varType: "set" | "const" | "var";
     declarations: VariableDeclaration[];
 }
 
@@ -108,6 +108,8 @@ export {
     LocalDeclarationNode,
     FunctionDeclarationNode,
     MacroDeclarationNode,
+    CleanupDeclarationNode,
+    AwaitStatementNode,
     IfStatementNode,
     WhileStatementNode,
     LoopStatementNode,

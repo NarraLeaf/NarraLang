@@ -5,5 +5,8 @@ export enum ParserContextType {
     Procedure,
 
     Root,
+
+    MacroDeclaration,
+    MacroBody,
 }
 
