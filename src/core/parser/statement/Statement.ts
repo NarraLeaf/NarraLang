@@ -1,7 +1,7 @@
 import { ExpressionNode, NodeType, StatementNode } from "../Node";
 
 export type VariableDeclaration = {
-    name: string;
+    left: ExpressionNode;
     value: ExpressionNode;
 };
 interface VariableDeclarationNode extends StatementNode {
@@ -12,7 +12,7 @@ interface VariableDeclarationNode extends StatementNode {
 
 interface LocalDeclarationNode extends StatementNode {
     type: NodeType.LocalDeclaration;
-    varDeclare: VariableDeclaration;
+    declarations: VariableDeclaration[];
 }
 
 type FunctionParam<T = ExpressionNode | null> = {

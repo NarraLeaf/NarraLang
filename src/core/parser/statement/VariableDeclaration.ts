@@ -7,11 +7,9 @@ import { OperatorType } from "@/core/lexer/Operator";
 import { parseExpression } from "../expression/ParseExpression";
 import { NodeType } from "../Node";
 import { trace } from "../Trace";
+import { ParserContextType } from "../ctx/ParserContextType";
 
-// @todo: 
-// add support for "to" keyword
-// add support for dynamic left-hand side
-// optional comma
+// @todo: support target destructuring
 
 export function parseVariableDeclaration(iterator: ParserIterator): VariableDeclarationNode {
     const currentToken = iterator.getCurrentToken();
@@ -37,39 +35,81 @@ export function parseVariableDeclaration(iterator: ParserIterator): VariableDecl
     };
     const type: VariableDeclarationNode["varType"] = typeMap[currentToken.value];
 
+    // Guard: `var` must be declared within a procedure/function context
+    if (type === "var" && !iterator.getContext().has(ParserContextType.Function)) {
+        throw new ParserError(
+            ParserErrorType.InvalidVariableDeclaration,
+            "Cannot declare function variable outside of function",
+        ).setPos(currentToken);
+    }
+
+    if (type !== "set" && iterator.getContext().has(ParserContextType.LocalDeclaration)) {
+        throw new ParserError(
+            ParserErrorType.InvalidVariableDeclaration,
+            "Cannot declare function variable/constant using local declaration syntax",
+        ).setPos(currentToken);
+    }
+
     const declarations: VariableDeclaration[] = [];
     let end: number | null = null;
 
-    iterator.consume();
+    iterator.consume(); // consume the keyword
     while (!iterator.isDone() && iterator.getCurrentToken()?.type !== TokenType.NewLine) {
-        const currentToken = iterator.getCurrentToken();
-        if (!currentToken || currentToken.type !== TokenType.Identifier) {
+        const left = parseExpression(iterator, {
+            stopOn: [
+                { type: TokenType.Operator, value: OperatorType.To },
+                { type: TokenType.NewLine },
+                { type: TokenType.Operator, value: OperatorType.Comma },
+            ],
+        });
+        if (!left) {
             throw new ParserError(
-                ParserErrorType.ExpectedIdentifier,
-                "Expected identifier",
-            ).setPos(currentToken);
-        }
-
-        const name = currentToken.value;
-        iterator.consume();
-
-        const commaToken = iterator.popTokenIf(token => 
-            token.type === TokenType.Operator 
-            && token.value === OperatorType.Comma
-        );
-        if (!commaToken) {
-            throw new ParserError(
-                ParserErrorType.UnexpectedToken,
-                "Expected comma, but got " + (iterator.getCurrentToken()?.type || "end of file"),
+                ParserErrorType.ExpectedExpression,
+                "Expected left-hand side expression or identifier",
             ).setPos(iterator.getCurrentToken());
         }
 
-        const value = parseExpression(iterator);
-        declarations.push({ name, value });
-
-        if (iterator.isDone() || iterator.getCurrentToken()!.type === TokenType.NewLine) {
-            end = value.trace.end;
+        // Guard: `const` and `var` require an identifier on LHS
+        if ((type === "const" || type === "var") && left.type !== NodeType.Identifier) {
+            throw new ParserError(
+                ParserErrorType.ExpectedIdentifier,
+                "Expected identifier on the left-hand side",
+            ).setPos(iterator.getCurrentToken());
         }
+
+        iterator.popTokenIf(token => // Consume the "to" keyword
+            token.type === TokenType.Operator && token.value === OperatorType.To
+        );
+
+        const value = parseExpression(iterator, {
+            stopOn: [
+                { type: TokenType.Operator, value: OperatorType.Comma },
+                { type: TokenType.NewLine },
+            ],
+        });
+        if (!value) {
+            throw new ParserError(
+                ParserErrorType.ExpectedExpression,
+                "Expected right-hand side expression",
+            ).setPos(iterator.getCurrentToken());
+        }
+        declarations.push({ left, value });
+
+        const next = iterator.getCurrentToken();
+        if (!next || next.type === TokenType.NewLine) {
+            end = value.trace.end;
+            break;
+        }
+
+        const consumedComma = iterator.popTokenIf(token => token.type === TokenType.Operator && token.value === OperatorType.Comma);
+        if (consumedComma) {
+            continue;
+        }
+
+        throw new ParserError(
+            ParserErrorType.UnexpectedToken,
+            "Expected ',' or line break between declarations",
+        ).setPos(next);
     }
 
     const start = currentToken.start;

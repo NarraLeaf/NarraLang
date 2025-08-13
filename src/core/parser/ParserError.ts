@@ -6,6 +6,8 @@ export enum ParserErrorType {
     ExpectedIdentifier = "ExpectedIdentifier",
 
     UnexpectedToken = "UnexpectedToken",
+    ExpectedExpression = "ExpectedExpression",
+    InvalidVariableDeclaration = "InvalidVariableDeclaration",
 }
 
 export class ParserError extends Error {

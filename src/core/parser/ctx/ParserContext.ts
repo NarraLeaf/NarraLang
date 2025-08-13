@@ -29,6 +29,14 @@ export class ParserContextStack {
         return this.ctx.pop() ?? null;
     }
 
+    public dispose(ctx: ParserContext) {
+        const index = this.ctx.lastIndexOf(ctx);
+        if (index === -1) {
+            return;
+        }
+        this.ctx.splice(index, 1);
+    }
+
     public peek(): ParserContext {
         const ctx = this.ctx.at(-1);
         if (!ctx) {
@@ -37,7 +45,11 @@ export class ParserContextStack {
         return ctx;
     }
     
-    public getParent(ctx: ParserContext): ParserContext {
+    public getParent(ctx: ParserContext | null = null): ParserContext {
+        if (!ctx) {
+            return this.ctx.at(-1) ?? this.root;
+        }
+
         const index = this.ctx.lastIndexOf(ctx);
         if (index === -1) {
             return this.root;
@@ -52,5 +64,23 @@ export class ParserContextStack {
             }
         }
         return null;
+    }
+
+    public context(ctx: ParserContext, fn: () => void): this {
+        this.push(ctx);
+        fn();
+
+        this.dispose(ctx);
+
+        return this;
+    }
+
+    public has(type: ParserContextType): boolean {
+        for (const ctx of this.ctx) {
+            if (ctx.type === type) {
+                return true;
+            }
+        }
+        return false;
     }
 }

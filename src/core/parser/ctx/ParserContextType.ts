@@ -1,6 +1,6 @@
 
 export enum ParserContextType {
-    Statement,
+    Function,
     Expression,
     Procedure,
 
@@ -8,5 +8,6 @@ export enum ParserContextType {
 
     MacroDeclaration,
     MacroBody,
+    LocalDeclaration,
 }
 

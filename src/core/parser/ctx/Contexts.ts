@@ -1,8 +1,8 @@
 import { ParserContext } from "./ParserContext";
 import { ParserContextType } from "./ParserContextType";
 
-export class ParserStatementContext extends ParserContext {
-    type = ParserContextType.Statement;
+export class ParserFunctionContext extends ParserContext {
+    type = ParserContextType.Function;
 }
 
 export class ParserExpressionContext extends ParserContext {
@@ -23,4 +23,8 @@ export class ParserMacroDeclarationContext extends ParserContext {
 
 export class ParserMacroBodyContext extends ParserContext {
     type = ParserContextType.MacroBody;
+}
+
+export class ParserLocalDeclarationContext extends ParserContext {
+    type = ParserContextType.LocalDeclaration;
 }

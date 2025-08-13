@@ -43,6 +43,7 @@ export enum OperatorType {
     LessThanOrEqual,             // less than or equal to
 
     QuestionMark,                // ?
+    To,                          // to
 }
 
 export const Operators: {
@@ -89,6 +90,38 @@ export const Operators: {
     [OperatorType.LessThanOrEqual]: ["less", "than", "or", "equal", "to"],
 
     [OperatorType.QuestionMark]: "?",
+    [OperatorType.To]: "to",
+};
+
+export const OperatorBPMap: Record<
+    number,
+    number
+> = {
+    [OperatorType.Plus]: 10,
+    [OperatorType.Minus]: 10,
+    [OperatorType.Asterisk]: 20,
+    [OperatorType.Slash]: 20,
+    [OperatorType.Percent]: 20,
+    [OperatorType.Exponent]: 30,
+
+    [OperatorType.LogicalEquals]: 40,
+    [OperatorType.LogicalNotEqual]: 40,
+    [OperatorType.LogicalGreaterThan]: 40,
+    [OperatorType.LogicalGreaterThanOrEqual]: 40,
+    [OperatorType.LogicalLessThan]: 40,
+    [OperatorType.LogicalLessThanOrEqual]: 40,
+
+    [OperatorType.LogicalNot]: 40,
+
+    [OperatorType.In]: 50,
+    [OperatorType.Is]: 60,
+    [OperatorType.And]: 70,
+    [OperatorType.Or]: 70,
+    [OperatorType.Not]: 70,
+    [OperatorType.EqualTo]: 70,
+    [OperatorType.GreaterThan]: 70,
+    [OperatorType.LessThan]: 70,
+    [OperatorType.GreaterThanOrEqual]: 70,
 };
 
 export const WhiteSpace = [" ", "\t"];
@@ -145,7 +178,7 @@ export function tryParseOperator(possibleTypes: OperatorType[], iterator: LexerI
                     if (cache !== expected) return true; // stop: mismatch
                     peeked.push(cache);
                     cache = "";
-                    
+
                     return false;
                 }
 
