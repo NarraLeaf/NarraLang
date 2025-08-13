@@ -44,6 +44,7 @@ export enum OperatorType {
 
     QuestionMark,                // ?
     To,                          // to
+    Nullish,                     // ??
 }
 
 export const Operators: {
@@ -91,6 +92,7 @@ export const Operators: {
 
     [OperatorType.QuestionMark]: "?",
     [OperatorType.To]: "to",
+    [OperatorType.Nullish]: "??",
 };
 
 export const OperatorBPMap: Record<
