@@ -7,7 +7,7 @@ export enum OperatorType {
     Asterisk,                    // *
     Slash,                       // /
     Percent,                     // %
-    Exponent,                    // ^
+    Exponent,                    // **
     LogicalEquals,               // =
     LogicalNotEqual,             // !=
     LogicalGreaterThan,          // >
@@ -31,20 +31,22 @@ export enum OperatorType {
     Dot,                         // .
     Ellipsis,                    // ...
 
-    In,                          // in
     Is,                          // is
     And,                         // and
     Or,                          // or
-    Not,                         // not
-    EqualTo,                     // equal to
-    GreaterThan,                 // greater than
-    LessThan,                    // less than
-    GreaterThanOrEqual,          // greater than or equal to
-    LessThanOrEqual,             // less than or equal to
 
     QuestionMark,                // ?
-    To,                          // to
     Nullish,                     // ??
+
+    // Composite word operators (binary)
+    IsNot,                       // is not
+    IsEqualTo,                   // is equal to
+    IsNotEqualTo,                // is not equal to
+    IsGreaterThan,               // is greater than
+    IsGreaterThanOrEqual,        // is greater than or equal to
+    IsLessThan,                  // is less than
+    IsLessThanOrEqual,           // is less than or equal to
+    IsIn,                        // is in
 }
 
 export const Operators: {
@@ -55,7 +57,7 @@ export const Operators: {
     [OperatorType.Asterisk]: "*",
     [OperatorType.Slash]: "/",
     [OperatorType.Percent]: "%",
-    [OperatorType.Exponent]: "^",
+    [OperatorType.Exponent]: "**",
     [OperatorType.LogicalEquals]: "=",
     [OperatorType.LogicalNotEqual]: "!=",
     [OperatorType.LogicalGreaterThan]: ">",
@@ -79,51 +81,62 @@ export const Operators: {
     [OperatorType.Dot]: ".",
     [OperatorType.Ellipsis]: "...",
 
-    [OperatorType.In]: ["in"],
     [OperatorType.Is]: ["is"],
     [OperatorType.And]: ["and"],
     [OperatorType.Or]: ["or"],
-    [OperatorType.Not]: ["not"],
-    [OperatorType.EqualTo]: ["equal", "to"],
-    [OperatorType.GreaterThan]: ["greater", "than"],
-    [OperatorType.LessThan]: ["less", "than"],
-    [OperatorType.GreaterThanOrEqual]: ["greater", "than", "or", "equal", "to"],
-    [OperatorType.LessThanOrEqual]: ["less", "than", "or", "equal", "to"],
 
     [OperatorType.QuestionMark]: "?",
-    [OperatorType.To]: "to",
     [OperatorType.Nullish]: "??",
+
+    // Composite word operators (binary)
+    [OperatorType.IsNot]: ["is", "not"],
+    [OperatorType.IsEqualTo]: ["is", "equal", "to"],
+    [OperatorType.IsNotEqualTo]: ["is", "not", "equal", "to"],
+    [OperatorType.IsGreaterThan]: ["is", "greater", "than"],
+    [OperatorType.IsGreaterThanOrEqual]: ["is", "greater", "than", "or", "equal", "to"],
+    [OperatorType.IsLessThan]: ["is", "less", "than"],
+    [OperatorType.IsLessThanOrEqual]: ["is", "less", "than", "or", "equal", "to"],
+    [OperatorType.IsIn]: ["is", "in"],
 };
 
 export const OperatorBPMap: Record<
     number,
     number
 > = {
-    [OperatorType.Plus]: 10,
-    [OperatorType.Minus]: 10,
-    [OperatorType.Asterisk]: 20,
-    [OperatorType.Slash]: 20,
-    [OperatorType.Percent]: 20,
-    [OperatorType.Exponent]: 30,
+    // Math operators
+    [OperatorType.Exponent]: 80,
+    [OperatorType.Asterisk]: 70,
+    [OperatorType.Slash]: 70,
+    [OperatorType.Percent]: 70,
+    [OperatorType.Plus]: 60,
+    [OperatorType.Minus]: 60,
+
+    // Relational operators
+    [OperatorType.LogicalGreaterThan]: 50,
+    [OperatorType.LogicalGreaterThanOrEqual]: 50,
+    [OperatorType.LogicalLessThan]: 50,
+    [OperatorType.LogicalLessThanOrEqual]: 50,
+    [OperatorType.Is]: 40,
 
     [OperatorType.LogicalEquals]: 40,
     [OperatorType.LogicalNotEqual]: 40,
-    [OperatorType.LogicalGreaterThan]: 40,
-    [OperatorType.LogicalGreaterThanOrEqual]: 40,
-    [OperatorType.LogicalLessThan]: 40,
-    [OperatorType.LogicalLessThanOrEqual]: 40,
+    // Logical operators
+    [OperatorType.And]: 35,
+    [OperatorType.Nullish]: 33,
+    [OperatorType.Or]: 30,
 
-    [OperatorType.LogicalNot]: 40,
+    // Unary operators
+    [OperatorType.LogicalNot]: 90,
 
-    [OperatorType.In]: 50,
-    [OperatorType.Is]: 60,
-    [OperatorType.And]: 70,
-    [OperatorType.Or]: 70,
-    [OperatorType.Not]: 70,
-    [OperatorType.EqualTo]: 70,
-    [OperatorType.GreaterThan]: 70,
-    [OperatorType.LessThan]: 70,
-    [OperatorType.GreaterThanOrEqual]: 70,
+    // Composite word operators (binary)
+    [OperatorType.IsNot]: 40,
+    [OperatorType.IsEqualTo]: 40,
+    [OperatorType.IsNotEqualTo]: 40,
+    [OperatorType.IsGreaterThan]: 50,
+    [OperatorType.IsGreaterThanOrEqual]: 50,
+    [OperatorType.IsLessThan]: 50,
+    [OperatorType.IsLessThanOrEqual]: 50,
+    [OperatorType.IsIn]: 50,
 };
 
 export const WhiteSpace = [" ", "\t"];

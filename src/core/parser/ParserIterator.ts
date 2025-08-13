@@ -1,4 +1,4 @@
-import { Tokens } from "../lexer/TokenType";
+import { Tokens, TokenType } from "../lexer/TokenType";
 import { ParserContextStack } from "./ctx/ParserContext";
 import { ParsedNode } from "./Node";
 
@@ -124,4 +124,21 @@ export function createParserIterator(tokens: Tokens[]): ParserIterator {
         getResult,
         isDone,
     };
+}
+
+export function filterComment(tokens: Tokens[]): {
+    tokens: Tokens[];
+    comments: Tokens[];
+} {
+    const comments: Tokens[] = [];
+    const filteredTokens: Tokens[] = [];
+
+    for (const token of tokens) {
+        if (token.type === TokenType.Comment) {
+            comments.push(token);
+        } else {
+            filteredTokens.push(token);
+        }
+    }
+    return { tokens: filteredTokens, comments };
 }

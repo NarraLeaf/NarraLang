@@ -11,6 +11,7 @@ export enum KeywordType {
 
     If,
     Else,
+    In,
     While,
     For,
     Loop,
@@ -18,6 +19,8 @@ export enum KeywordType {
     Continue,
     Return,
     ForEach,
+    To,
+    From,
 
     Debugger,
     As,
@@ -43,6 +46,7 @@ export const Keywords: {
     
     [KeywordType.If]: "if",
     [KeywordType.Else]: "else",
+    [KeywordType.In]: "in",
     [KeywordType.While]: "while",
     [KeywordType.For]: "for",
     [KeywordType.Loop]: "loop",
@@ -50,7 +54,9 @@ export const Keywords: {
     [KeywordType.Continue]: "continue",
     [KeywordType.Return]: "return",
     [KeywordType.ForEach]: ["for", "each"],
-
+    [KeywordType.To]: "to",
+    [KeywordType.From]: "from",
+    
     [KeywordType.Debugger]: "debugger",
     [KeywordType.As]: "as",
     [KeywordType.Declare]: "declare",

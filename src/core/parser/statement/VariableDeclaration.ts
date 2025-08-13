@@ -4,12 +4,10 @@ import { VariableDeclaration, VariableDeclarationNode } from "./Statement";
 import { KeywordType } from "@/core/lexer/Keyword";
 import { ParserError, ParserErrorType } from "../ParserError";
 import { OperatorType } from "@/core/lexer/Operator";
-import { parseExpression } from "../expression/ParseExpression";
+import { parseExpression } from "../expression/parseExpression";
 import { NodeType } from "../Node";
 import { trace } from "../Trace";
 import { ParserContextType } from "../ctx/ParserContextType";
-
-// @todo: support target destructuring
 
 export function parseVariableDeclaration(iterator: ParserIterator): VariableDeclarationNode {
     const currentToken = iterator.getCurrentToken();
@@ -54,31 +52,48 @@ export function parseVariableDeclaration(iterator: ParserIterator): VariableDecl
     let end: number | null = null;
 
     iterator.consume(); // consume the keyword
-    while (!iterator.isDone() && iterator.getCurrentToken()?.type !== TokenType.NewLine) {
+    while (!iterator.isDone()) {
         const left = parseExpression(iterator, {
             stopOn: [
-                { type: TokenType.Operator, value: OperatorType.To },
+                { type: TokenType.Keyword, value: KeywordType.To },
                 { type: TokenType.NewLine },
                 { type: TokenType.Operator, value: OperatorType.Comma },
             ],
+            identifier: true,
         });
-        if (!left) {
+        // Guard: ensure LHS is a valid target form for declaration/assignment
+        const allowedLhsForAny: NodeType[] = [
+            NodeType.Identifier,
+            NodeType.ArrayExpression,
+            NodeType.ObjectExpression,
+            NodeType.TupleExpression,
+            NodeType.MemberExpression,
+        ];
+        if (!left || !allowedLhsForAny.includes(left.type)) {
             throw new ParserError(
                 ParserErrorType.ExpectedExpression,
                 "Expected left-hand side expression or identifier",
             ).setPos(iterator.getCurrentToken());
         }
 
-        // Guard: `const` and `var` require an identifier on LHS
-        if ((type === "const" || type === "var") && left.type !== NodeType.Identifier) {
+        // Guard: `const` requires an identifier on LHS (no reference or destructuring)
+        if (type === "const" && left.type !== NodeType.Identifier) {
             throw new ParserError(
                 ParserErrorType.ExpectedIdentifier,
                 "Expected identifier on the left-hand side",
             ).setPos(iterator.getCurrentToken());
         }
 
-        iterator.popTokenIf(token => // Consume the "to" keyword
-            token.type === TokenType.Operator && token.value === OperatorType.To
+        // Guard: `var` cannot target a reference (member path). Destructuring is allowed.
+        if (type === "var" && left.type === NodeType.MemberExpression) {
+            throw new ParserError(
+                ParserErrorType.InvalidVariableDeclaration,
+                "Expected variable or destructuring on the left-hand side",
+            ).setPos(iterator.getCurrentToken());
+        }
+
+        iterator.popTokenIf(token => // Consume the optional "to" operator
+            token.type === TokenType.Keyword && token.value === KeywordType.To
         );
 
         const value = parseExpression(iterator, {
@@ -101,6 +116,7 @@ export function parseVariableDeclaration(iterator: ParserIterator): VariableDecl
             break;
         }
 
+        // Consume the comma
         const consumedComma = iterator.popTokenIf(token => token.type === TokenType.Operator && token.value === OperatorType.Comma);
         if (consumedComma) {
             continue;

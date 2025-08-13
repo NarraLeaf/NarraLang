@@ -1,7 +1,6 @@
 import { ExpressionNode, NodeType } from "../Node";
 import { BinaryOperator } from "./BinaryExpression";
 
-
 interface CallExpressionNode extends ExpressionNode {
     type: NodeType.CallExpression;
     callee: ExpressionNode;
@@ -23,6 +22,13 @@ interface BinaryExpressionNode extends ExpressionNode {
 
 interface UnaryExpressionNode extends ExpressionNode {
     type: NodeType.UnaryExpression;
+    condition: ExpressionNode;
+    trueValue: ExpressionNode;
+    falseValue: ExpressionNode;
+}
+
+interface TernaryExpressionNode extends ExpressionNode {
+    type: NodeType.TernaryExpression;
     condition: ExpressionNode;
     trueValue: ExpressionNode;
     falseValue: ExpressionNode;
@@ -69,15 +75,7 @@ interface RestExpressionNode extends ExpressionNode {
 }
 
 export {
-    CallExpressionNode,
-    MemberExpressionNode,
-    BinaryExpressionNode,
-    UnaryExpressionNode,
-    IdentifierNode,
-    LiteralNode,
-    ArrayExpressionNode,
-    ObjectExpressionNode,
-    TupleExpressionNode,
-    StringExpressionNode,
-    RestExpressionNode,
+    ArrayExpressionNode, BinaryExpressionNode, CallExpressionNode, IdentifierNode,
+    LiteralNode, MemberExpressionNode, ObjectExpressionNode, RestExpressionNode, StringExpressionNode, TernaryExpressionNode, TupleExpressionNode, UnaryExpressionNode
 };
+
