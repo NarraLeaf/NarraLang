@@ -83,6 +83,6 @@ export const BinaryOperators: BinaryOperator[] = [
     OperatorType.IsIn,
 ];
 
-export function parseBinaryExpression(iterator: ParserIterator): BinaryExpressionNode | null {
-    return null;
+export function isBinaryOperator(op: OperatorType): boolean {
+    return BinaryOperators.includes(op as BinaryOperator);
 }

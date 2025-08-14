@@ -1,44 +1,21 @@
-import { ExpressionNode } from "../Node";
+import { ExpressionNode, NodeType } from "../Node";
 import { ParserError, ParserErrorType } from "../ParserError";
 import { ParserIterator } from "../ParserIterator";
-import type { Tokens as _Tokens } from "@/core/lexer/TokenType";
-import { TokenType } from "@/core/lexer/TokenType";
+import { OperatorBPMap, OperatorType } from "@/core/lexer/Operator";
+import { isBinaryOperator } from "./BinaryExpression";
+import { 
+    ParseExpressionOptions, 
+    StopTokenMatcher, 
+    matchesStopOn, 
+    peekOperatorType, 
+    isRightAssociative,
+    MAX_DEPTH 
+} from "./shared";
+import { parsePrimary } from "./parsePrimary";
+import { parsePostfix } from "./parsePostfix";
+import { parseTernaryExpression } from "./parseTernary";
 
-const MAX_DEPTH = 256;
-
-// Comments in English
-export type StopTokenMatcher = {
-    type: TokenType;
-    /** Optional subtype, e.g. OperatorType, KeywordType, etc. */
-    value?: unknown;
-};
-
-export type ParseExpressionOptions = {
-    /**
-     * Stop when upcoming token matches any of these. Effective at top-level (outside () [] {})
-     * by default; nested structures handle their own stops.
-     */
-    stopOn?: StopTokenMatcher[];
-
-    /** Minimal binding power for Pratt parsing. */
-    minBP?: number;
-
-    /**
-     * True if the expression is expected to be an identifier.  
-     * Destructing assignment is supported.
-     */
-    identifier?: boolean;
-
-    depth?: number;
-};
-
-function mergeOptions(target: ParseExpressionOptions, source: ParseExpressionOptions): ParseExpressionOptions {
-    return {
-        ...target,
-        ...source,
-    };
-}
-
+export type { StopTokenMatcher, ParseExpressionOptions };
 
 export function parseExpression(iterator: ParserIterator, options?: ParseExpressionOptions): ExpressionNode | null {
     const depth = options?.depth ?? 0;
@@ -49,39 +26,58 @@ export function parseExpression(iterator: ParserIterator, options?: ParseExpress
         );
     }
 
-    // ===============================
-    // High-level plan for parseExpression (documentation + scaffold)
-    // ===============================
-    // 1) Parse prefix/primary to get a left operand
-    //    - Literals: Number/Boolean/Null/String
-    //    - Grouping & aggregates: ( ) [ ] { }
-    //    - Identifier (and possibly function/macro names)
-    //    - Prefix unary: !, not, - (when in prefix position)
-    //
-    // 2) Parse postfix chain on that left operand
-    //    - Call: (...)
-    //    - Member: .prop
-    //    - Index: [expr]
-    //
-    // 3) Fold binary operators using precedence climbing
-    //    - Map OperatorType -> (BinaryOperator, precedence, associativity)
-    //    - While next operator has precedence >= minBP, consume and fold RHS
-    //
-    // 4) Optionally, parse ternary expression after binary folding
-    //    - a ? b : c
-    //
-    // NOTE: This file currently provides only the control-plane and docs.
-    // The actual implementations (parsePrefixOrPrimary, parsePostfixChain,
-    // parseBinaryExpressionWithLeft, parseTernaryIfAny) are to be added.
-    // Returning null here keeps the file compiling while other parts are WIP.
+    // Normalize options for this level
+    const minBP = options?.minBP ?? 0;
+    const nextDepth = depth + 1;
+    const stopOn = options?.stopOn;
 
-    // Pseudocode (reference):
-    // const leftStart = parsePrefixOrPrimary(iterator, options);
-    // if (!leftStart) return null;
-    // const left = parsePostfixChain(iterator, leftStart, options);
-    // const folded = parseBinaryExpressionWithLeft(iterator, left, options?.minBP ?? 0, options?.stopOn);
-    // const withTernary = parseTernaryIfAny(iterator, folded, options);
-    // return withTernary;
+    // 1) Parse primary
+    let left = parsePrimary(iterator, { ...options, depth: nextDepth }, parseExpression);
+    if (!left) {
+        const t = iterator.peekToken();
+        throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression", t ?? null);
+    }
 
-    return null;
+    // 2) Parse postfix chain (member access / calls)
+    left = parsePostfix(iterator, left, { ...options, depth: nextDepth }, parseExpression);
+
+    // 3) Pratt loop for infix and ternary
+    while (true) {
+        const look = iterator.peekToken();
+        if (!look) break;
+        if (matchesStopOn(look, stopOn)) break;
+
+        // Ternary: condition ? a : b
+        if (look.type === TokenType.Operator && (look as any).value === OperatorType.QuestionMark) {
+            left = parseTernaryExpression(iterator, left, { ...options, depth: nextDepth }, parseExpression);
+            continue;
+        }
+
+        // Binary operators
+        const op = peekOperatorType(iterator);
+        if (op === null || !isBinaryOperator(op)) break;
+
+        const bp = OperatorBPMap[op as number] ?? 0;
+        if (bp < minBP) break;
+
+        // consume the operator
+        const opTok = iterator.popToken()!;
+        const rightMinBP = isRightAssociative(op) ? bp : bp + 1;
+        const right = parseExpression(iterator, { ...options, depth: nextDepth, minBP: rightMinBP });
+        if (!right) {
+            const w = iterator.peekToken();
+            throw new ParserError(ParserErrorType.ExpectedExpression, "Expected right-hand expression", w ?? opTok);
+        }
+
+        left = {
+            type: NodeType.BinaryExpression,
+            trace: { start: (left as any).trace.start, end: (right as any).trace?.end ?? opTok.end },
+            children: [left, right],
+            operator: op,
+            left,
+            right,
+        } as any;
+    }
+
+    return left;
 }
