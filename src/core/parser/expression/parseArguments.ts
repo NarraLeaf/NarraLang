@@ -4,7 +4,7 @@ import { ParserIterator } from "../ParserIterator";
 import type { Tokens } from "@/core/lexer/TokenType";
 import { TokenType } from "@/core/lexer/TokenType";
 import { OperatorType } from "@/core/lexer/Operator";
-import { ParseExpressionOptions } from "./shared";
+import { ParseExpressionOptions, resetBP } from "./shared";
 import { parseExpression } from "./ParseExpression";
 
 // Parse: argument list inside parentheses. Returns list of expressions and last consumed token
@@ -23,14 +23,14 @@ export function parseArgumentList(
     }
 
     while (true) {
-        const expr = parseExpression(iterator, {
+        const expr = parseExpression(iterator, resetBP({
             ...options,
             // Stop on comma or right parenthesis for each argument
             stopOn: [
                 { type: TokenType.Operator, value: OperatorType.Comma },
                 { type: TokenType.Operator, value: OperatorType.RightParenthesis },
             ],
-        });
+        }));
         if (!expr) {
             const t = iterator.peekToken();
             throw new ParserError(ParserErrorType.ExpectedExpression, "Expected argument expression", t ?? null);

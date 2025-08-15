@@ -3,7 +3,7 @@ import { ParserError, ParserErrorType } from "../ParserError";
 import { ParserIterator } from "../ParserIterator";
 import { TokenType } from "@/core/lexer/TokenType";
 import { OperatorType } from "@/core/lexer/Operator";
-import { ParseExpressionOptions, consumeOperator, createTrace } from "./shared";
+import { ParseExpressionOptions, consumeOperator, createTrace, resetBP } from "./shared";
 import { parsePrimary } from "./parsePrimary";
 import { parseExpression } from "./ParseExpression";
 import { TupleExpressionNode } from "./Expression";
@@ -29,7 +29,7 @@ export function parseTupleOrGroup(
     }
 
     // Parse inner expression; allow tuple via commas
-    const firstExpr = parseExpression(iterator, { ...options, depth: nextDepth });
+    const firstExpr = parseExpression(iterator, resetBP({ ...options, depth: nextDepth }));
     if (!firstExpr) {
         const w = iterator.peekToken();
         throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after '('", w ?? lp);
@@ -52,7 +52,7 @@ export function parseTupleOrGroup(
                 break;
             }
             
-            const nextItem = parseExpression(iterator, { ...options, depth: nextDepth });
+            const nextItem = parseExpression(iterator, resetBP({ ...options, depth: nextDepth }));
             if (!nextItem) {
                 const w = iterator.peekToken();
                 throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after ','", w ?? comma);

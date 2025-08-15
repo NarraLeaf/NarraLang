@@ -3,7 +3,7 @@ import { ParserError, ParserErrorType } from "../ParserError";
 import { ParserIterator } from "../ParserIterator";
 import { TokenType } from "@/core/lexer/TokenType";
 import { OperatorType } from "@/core/lexer/Operator";
-import { ParseExpressionOptions, consumeOperator, createTrace } from "./shared";
+import { ParseExpressionOptions, consumeOperator, createTrace, resetBP } from "./shared";
 import { parsePrimary } from "./parsePrimary";
 import { parseExpression } from "./ParseExpression";
 import { ArrayExpressionNode } from "./Expression";
@@ -35,7 +35,7 @@ export function parseArrayLiteral(
         }
 
         // Parse expression element
-        const elem = parseExpression(iterator, { ...options, depth: nextDepth });
+        const elem = parseExpression(iterator, resetBP({ ...options, depth: nextDepth }));
         if (!elem) {
             const w = iterator.peekToken();
             throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression inside array", w ?? lb);
@@ -47,7 +47,7 @@ export function parseArrayLiteral(
             iterator.popToken();
             continue;
         }
-        
+
         exit = true;
         break;
     }

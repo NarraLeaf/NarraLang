@@ -5,7 +5,7 @@ import { ParserError, ParserErrorType } from "../ParserError";
 import { ParserIterator } from "../ParserIterator";
 import { IdentifierNode, ObjectExpressionNode, StringExpressionNode, TupleExpressionNode } from "./Expression";
 import { parsePrimary } from "./parsePrimary";
-import { ParseExpressionOptions, consumeOperator, createTrace } from "./shared";
+import { ParseExpressionOptions, consumeOperator, createTrace, resetBP } from "./shared";
 import { parseRichString } from "./parseRichString";
 import { parseExpression } from "./ParseExpression";
 
@@ -62,7 +62,7 @@ export function parseObjectLiteral(
         }
         iterator.popToken();
 
-        const valueExpr = parseExpression(iterator, { ...options, depth: nextDepth });
+        const valueExpr = parseExpression(iterator, resetBP({ ...options, depth: nextDepth }));
         if (!valueExpr) {
             const w = iterator.peekToken();
             throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after ':' in object literal", w ?? maybeColon);
