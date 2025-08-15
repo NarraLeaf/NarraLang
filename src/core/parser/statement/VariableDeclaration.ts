@@ -4,7 +4,7 @@ import { VariableDeclaration, VariableDeclarationNode } from "./Statement";
 import { KeywordType } from "@/core/lexer/Keyword";
 import { ParserError, ParserErrorType } from "../ParserError";
 import { OperatorType } from "@/core/lexer/Operator";
-import { parseExpression } from "../expression/parseExpression";
+import { parseExpression } from "../expression/ParseExpression";
 import { NodeType } from "../Node";
 import { trace } from "../Trace";
 import { ParserContextType } from "../ctx/ParserContextType";

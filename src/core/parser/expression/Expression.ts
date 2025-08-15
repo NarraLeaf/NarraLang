@@ -24,8 +24,6 @@ interface BinaryExpressionNode extends ExpressionNode {
 interface UnaryExpressionNode extends ExpressionNode {
     type: NodeType.UnaryExpression;
     condition: ExpressionNode;
-    trueValue: ExpressionNode;
-    falseValue: ExpressionNode;
 }
 
 interface TernaryExpressionNode extends ExpressionNode {

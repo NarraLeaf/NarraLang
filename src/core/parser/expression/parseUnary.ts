@@ -2,8 +2,9 @@ import { OperatorBPMap, OperatorType } from "@/core/lexer/Operator";
 import { ExpressionNode, NodeType } from "../Node";
 import { ParserError, ParserErrorType } from "../ParserError";
 import { ParserIterator } from "../ParserIterator";
-import { parseExpression } from "./parseExpression";
+import { parseExpression } from "./ParseExpression";
 import { ParseExpressionOptions, createTrace } from "./shared";
+import { RestExpressionNode, UnaryExpressionNode } from "./Expression";
 
 // Parse unary LogicalNot: !expr
 export function parseUnaryLogicalNot(
@@ -24,10 +25,36 @@ export function parseUnaryLogicalNot(
         throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after '!'", w ?? opTok);
     }
     
-    const node: ExpressionNode & { condition: ExpressionNode } = {
-        // NOTE: current project defines UnaryExpressionNode shape unusual; keep minimal field
+    const node: UnaryExpressionNode = {
         type: NodeType.UnaryExpression,
-        trace: createTrace(opTok, (rhs as any).trace ? { start: (rhs as any).trace.start, end: (rhs as any).trace.end } as any : opTok),
+        trace: createTrace(opTok, rhs.trace.end),
+        condition: rhs,
+    };
+    return node;
+}
+
+// Parse unary minus: -expr
+export function parseUnaryMinus(
+    iterator: ParserIterator,
+    options: ParseExpressionOptions
+): ExpressionNode {
+    const opTok = iterator.popToken()!; // consume '-'
+    const nextDepth = (options.depth ?? 0) + 1;
+    
+    const rhs = parseExpression(iterator, { 
+        ...options, 
+        depth: nextDepth, 
+        minBP: 90  // High precedence for unary minus
+    });
+    
+    if (!rhs) {
+        const w = iterator.peekToken();
+        throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after unary '-'", w ?? opTok);
+    }
+    
+    const node: UnaryExpressionNode = {
+        type: NodeType.UnaryExpression,
+        trace: createTrace(opTok, rhs.trace.end),
         condition: rhs,
     };
     return node;
@@ -52,9 +79,9 @@ export function parseRestExpression(
         throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after '...'", w ?? el);
     }
     
-    const node: ExpressionNode & { value: ExpressionNode } = {
+    const node: RestExpressionNode = {
         type: NodeType.RestExpression,
-        trace: createTrace(el, (value as any).trace ? { start: (value as any).trace.start, end: (value as any).trace.end } as any : el),
+        trace: createTrace(el, value.trace.end),
         value,
     };
     return node;

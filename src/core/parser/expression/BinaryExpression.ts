@@ -1,6 +1,5 @@
+import { KeywordType } from "@/core/lexer/Keyword";
 import { OperatorType } from "@/core/lexer/Operator";
-import { ParserIterator } from "../ParserIterator";
-import { BinaryExpressionNode } from "./Expression";
 
 
 export enum BinaryOperator_ {
@@ -37,7 +36,6 @@ export type BinaryOperator = (
     OperatorType.LogicalGreaterThanOrEqual |
     OperatorType.LogicalLessThan |
     OperatorType.LogicalLessThanOrEqual |
-    OperatorType.LogicalNot |
 
     OperatorType.Is |
     OperatorType.And |
@@ -67,7 +65,6 @@ export const BinaryOperators: BinaryOperator[] = [
     OperatorType.LogicalGreaterThanOrEqual,
     OperatorType.LogicalLessThan,
     OperatorType.LogicalLessThanOrEqual,
-    OperatorType.LogicalNot,
 
     OperatorType.Is,
     OperatorType.And,
@@ -85,4 +82,14 @@ export const BinaryOperators: BinaryOperator[] = [
 
 export function isBinaryOperator(op: OperatorType): boolean {
     return BinaryOperators.includes(op as BinaryOperator);
+}
+
+// Define unary prefix-only operators that cannot be used as infix operators
+export const UnaryPrefixOnlyOperators: OperatorType[] = [
+    OperatorType.LogicalNot,   // !
+    OperatorType.Ellipsis,     // ...
+];
+
+export function isUnaryPrefixOnlyOperator(op: OperatorType): boolean {
+    return UnaryPrefixOnlyOperators.includes(op);
 }

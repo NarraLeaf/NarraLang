@@ -125,6 +125,9 @@ export const OperatorBPMap: Record<
     [OperatorType.Nullish]: 33,
     [OperatorType.Or]: 30,
 
+    // Ternary has very low precedence
+    [OperatorType.QuestionMark]: 20,
+    
     // Unary operators
     [OperatorType.LogicalNot]: 90,
 

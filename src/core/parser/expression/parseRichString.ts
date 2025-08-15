@@ -1,7 +1,7 @@
 import { StringTagType, StringToken, StringTokenType } from "@/core/lexer/String";
 import { ExpressionNode } from "../Node";
 import { StringTag } from "./Expression";
-import { parseExpression } from "./parseExpression";
+import { parseExpression } from "./ParseExpression";
 import { createParserIterator } from "../ParserIterator";
 import { ParserError, ParserErrorType } from "../ParserError";
 
@@ -18,7 +18,7 @@ export function parseRichString(tokens: StringToken[]): ParsedString {
             }
         }
         return -1;
-    }
+    };
 
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
@@ -45,7 +45,6 @@ export function parseRichString(tokens: StringToken[]): ParsedString {
                 continue;
             }
 
-            const children: (string | StringTag | ExpressionNode)[] = [];
             const startIndex = i + 1; // skip current tag
             const nextCloseTag = indexOfNextCloseTagFrom(
                 startIndex,

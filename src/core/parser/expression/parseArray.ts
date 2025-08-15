@@ -5,7 +5,66 @@ import { TokenType } from "@/core/lexer/TokenType";
 import { OperatorType } from "@/core/lexer/Operator";
 import { ParseExpressionOptions, consumeOperator, createTrace } from "./shared";
 import { parsePrimary } from "./parsePrimary";
+import { parseExpression } from "./ParseExpression";
 import { ArrayExpressionNode } from "./Expression";
+import { trace } from "../Trace";
+
+// Parse array literal: [expr1, expr2, ...exprN]
+export function parseArrayLiteral(
+    iterator: ParserIterator,
+    options: ParseExpressionOptions,
+): ExpressionNode {
+    const lb = iterator.popToken()!; // consume '['
+    const elements: ExpressionNode[] = [];
+    const nextDepth = (options.depth ?? 0) + 1;
+
+    if (consumeOperator(iterator, OperatorType.RightBracket)) {
+        const node: ArrayExpressionNode = {
+            type: NodeType.ArrayExpression,
+            trace: trace(lb.start, lb.end),
+            elements,
+        };
+        return node;
+    }
+
+    let exit = false;
+    while (!exit) {
+        const look = iterator.peekToken();
+        if (!look) {
+            throw new ParserError(ParserErrorType.UnexpectedToken, "Unclosed array literal", look);
+        }
+
+        // Parse expression element
+        const elem = parseExpression(iterator, { ...options, depth: nextDepth });
+        if (!elem) {
+            const w = iterator.peekToken();
+            throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression inside array", w ?? lb);
+        }
+        elements.push(elem);
+
+        const sep = iterator.peekToken();
+        if (sep && sep.type === TokenType.Operator && sep.value === OperatorType.Comma) {
+            iterator.popToken();
+            continue;
+        }
+        
+        exit = true;
+        break;
+    }
+
+    const rb = iterator.peekToken();
+    if (!rb || rb.type !== TokenType.Operator || rb.value !== OperatorType.RightBracket) {
+        throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ']' to close array literal", rb ?? null);
+    }
+    iterator.popToken();
+
+    const node: ArrayExpressionNode = {
+        type: NodeType.ArrayExpression,
+        trace: createTrace(lb, rb),
+        elements,
+    };
+    return node;
+}
 
 // Parse array pattern for identifier mode: [p1, p2, ...rest]
 export function parseArrayPattern(

@@ -4,13 +4,15 @@ import { ParserIterator } from "../ParserIterator";
 import { TokenType } from "@/core/lexer/TokenType";
 import { OperatorType } from "@/core/lexer/Operator";
 import { ParseExpressionOptions } from "./shared";
+import { parseExpression } from "./ParseExpression";
+import { TernaryExpressionNode } from "./Expression";
+import { KeywordType } from "@/core/lexer/Keyword";
 
 // Parse ternary conditional expression: condition ? trueValue : falseValue
 export function parseTernaryExpression(
     iterator: ParserIterator,
     left: ExpressionNode,
     options: ParseExpressionOptions,
-    parseExpression: (iterator: ParserIterator, options?: ParseExpressionOptions) => ExpressionNode | null
 ): ExpressionNode {
     const qm = iterator.popToken()!; // consume '?'
     const nextDepth = (options.depth ?? 0) + 1;
@@ -27,7 +29,7 @@ export function parseTernaryExpression(
     }
     
     const colon = iterator.peekToken();
-    if (!colon || colon.type !== TokenType.Operator || (colon as any).value !== OperatorType.Colon) {
+    if (!colon || colon.type !== TokenType.Operator || colon.value !== OperatorType.Colon) {
         throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ':' in ternary expression", colon ?? null);
     }
     const colonTok = iterator.popToken()!;
@@ -43,21 +45,51 @@ export function parseTernaryExpression(
         throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after ':'", w ?? colonTok);
     }
     
-    const node: ExpressionNode & { 
-        condition: ExpressionNode; 
-        trueValue: ExpressionNode; 
-        falseValue: ExpressionNode; 
-    } = {
+    const node: TernaryExpressionNode = {
         type: NodeType.TernaryExpression,
         trace: { 
-            start: (left as any).trace.start, 
-            end: (falseExpr as any).trace?.end ?? colonTok.end 
+            start: left.trace.start, 
+            end: falseExpr.trace?.end ?? colonTok.end 
         },
-        children: [left, trueExpr, falseExpr],
         condition: left,
         trueValue: trueExpr,
         falseValue: falseExpr,
     };
     
+    return node;
+}
+
+export function parseIfElseTernaryExpression(
+    iterator: ParserIterator,
+    trueValue: ExpressionNode,
+    options: ParseExpressionOptions,
+): ExpressionNode {
+    const ifTok = iterator.popToken()!; // consume 'if'
+    const condition = parseExpression(iterator, { ...options, depth: 0, minBP: 0 });
+    if (!condition) {
+        throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after 'if'", ifTok);
+    }
+
+    const elseTok = iterator.popTokenIf((token) => token.type === TokenType.Keyword && token.value === KeywordType.Else);
+    if (!elseTok) {
+        throw new ParserError(ParserErrorType.UnexpectedToken, "Expected 'else' after 'if'", ifTok);
+    }
+
+    const falseValue = parseExpression(iterator, { ...options, depth: 0, minBP: 0 });
+    if (!falseValue) {
+        throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after 'else'", elseTok);
+    }
+
+    const node: TernaryExpressionNode = {
+        type: NodeType.TernaryExpression,
+        trace: {
+            start: ifTok.start,
+            end: falseValue.trace.end,
+        },
+        condition,
+        trueValue,
+        falseValue,
+    };
+
     return node;
 }

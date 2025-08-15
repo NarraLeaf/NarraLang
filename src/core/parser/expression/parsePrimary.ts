@@ -4,11 +4,12 @@ import { ExpressionNode, NodeType } from "../Node";
 import { ParserError, ParserErrorType } from "../ParserError";
 import { ParserIterator } from "../ParserIterator";
 import { IdentifierNode, LiteralNode, StringExpressionNode } from "./Expression";
-import { parseArrayPattern } from "./parseArray";
-import { parseObjectPattern } from "./parseObject";
+import { parseArrayPattern, parseArrayLiteral } from "./parseArray";
+import { parseObjectPattern, parseObjectLiteral } from "./parseObject";
 import { parseTupleOrGroup, parseTuplePattern } from "./parseTuple";
-import { parseRestExpression, parseUnaryLogicalNot } from "./parseUnary";
-import { Atoms, ParseExpressionOptions } from "./shared";
+import { parseRestExpression, parseUnaryLogicalNot, parseUnaryMinus } from "./parseUnary";
+import { Atoms, ParseExpressionOptions, resetBP } from "./shared";
+import { parseRichString } from "./parseRichString";
 
 // Parse: primary expression (identifier, literal, string, grouping, unary, rest)
 export function parsePrimary(
@@ -51,7 +52,7 @@ export function parsePrimary(
 
     // Grouping: ( ... ) or call start (handled as postfix later)
     if (t.type === TokenType.Operator && t.value === OperatorType.LeftParenthesis) {
-        return parseTupleOrGroup(iterator, options);
+        return parseTupleOrGroup(iterator, resetBP(options));
     }
 
     // Rest expression: ...expr
@@ -62,6 +63,21 @@ export function parsePrimary(
     // Unary LogicalNot: !expr
     if (t.type === TokenType.Operator && t.value === OperatorType.LogicalNot) {
         return parseUnaryLogicalNot(iterator, options);
+    }
+
+    // Unary Minus: -expr
+    if (t.type === TokenType.Operator && t.value === OperatorType.Minus) {
+        return parseUnaryMinus(iterator, options);
+    }
+
+    // Array literal: [1, 2, 3]
+    if (t.type === TokenType.Operator && t.value === OperatorType.LeftBracket) {
+        return parseArrayLiteral(iterator, resetBP(options));
+    }
+
+    // Object literal: {a: 1, b: 2}
+    if (t.type === TokenType.Operator && t.value === OperatorType.LeftBrace) {
+        return parseObjectLiteral(iterator, resetBP(options));
     }
 
     // Simple atoms: identifier and literals
@@ -76,10 +92,11 @@ export function parsePrimary(
             return node;
         }
         if (tok.type === TokenType.String) {
+            const parsed = parseRichString(tok.value);
             const node: StringExpressionNode = {
                 type: NodeType.StringExpression,
                 trace: { start: tok.start, end: tok.end },
-                value: tok.value,
+                value: parsed,
             };
             return node;
         }
@@ -88,9 +105,9 @@ export function parsePrimary(
             type: NodeType.Literal,
             trace: { start: tok.start, end: tok.end },
             value: (tok.type === TokenType.NumberLiteral
-                ? ((tok as any).value as number)
+                ? tok.value
                 : tok.type === TokenType.BooleanLiteral
-                ? ((tok as any).value as boolean)
+                ? tok.value
                 : null),
         };
         return node;

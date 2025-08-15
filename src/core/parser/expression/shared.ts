@@ -1,9 +1,8 @@
-import { ExpressionNode } from "../Node";
-import { ParserError, ParserErrorType } from "../ParserError";
-import { ParserIterator } from "../ParserIterator";
-import type { Tokens } from "@/core/lexer/TokenType";
-import { TokenType } from "@/core/lexer/TokenType";
 import { OperatorType } from "@/core/lexer/Operator";
+import type { Tokens, TokensTypeOf } from "@/core/lexer/TokenType";
+import { TokenType } from "@/core/lexer/TokenType";
+import { ParserIterator } from "../ParserIterator";
+import { KeywordType } from "@/core/lexer/Keyword";
 
 // Comments in English
 export type StopTokenMatcher = {
@@ -46,13 +45,13 @@ export function matchesStopOn(token: Tokens | null, stopOn?: StopTokenMatcher[])
     return stopOn.some((matcher) => {
         if (token.type !== matcher.type) return false;
         if (typeof matcher.value === "undefined") return true;
-        return (token as any).value === matcher.value;
+        return (token as TokensTypeOf<TokenType.Operator>).value === matcher.value;
     });
 }
 
 // Utility: create trace object from tokens
-export function createTrace(start: Tokens, end: Tokens | null) {
-    return { start: start.start, end: end ? end.end : start.end } as const;
+export function createTrace(start: Tokens, end: Tokens | number | null) {
+    return { start: start.start, end: end ? (typeof end === "number" ? end : end.end) : start.end } as const;
 }
 
 // Utility: try to consume a specific operator
@@ -68,7 +67,13 @@ export function consumeOperator(iterator: ParserIterator, type: OperatorType): T
 export function peekOperatorType(iterator: ParserIterator): OperatorType | null {
     const t = iterator.peekToken();
     if (!t || t.type !== TokenType.Operator) return null;
-    return (t as any).value as OperatorType;
+    return (t as TokensTypeOf<TokenType.Operator>).value as OperatorType;
+}
+
+export function peekKeywordType(iterator: ParserIterator): KeywordType | null {
+    const t = iterator.peekToken();
+    if (!t || t.type !== TokenType.Keyword) return null;
+    return (t as TokensTypeOf<TokenType.Keyword>).value as KeywordType;
 }
 
 // Utility: associativity, true means right-associative
@@ -79,6 +84,13 @@ export function isRightAssociative(op: OperatorType): boolean {
         default:
             return false;
     }
+}
+
+export function resetBP(options: ParseExpressionOptions): ParseExpressionOptions {
+    return {
+        ...options,
+        minBP: 0,
+    };
 }
 
 export const MAX_DEPTH = 256;
