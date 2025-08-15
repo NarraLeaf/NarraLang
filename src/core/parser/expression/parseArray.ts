@@ -4,22 +4,22 @@ import { ParserIterator } from "../ParserIterator";
 import { TokenType } from "@/core/lexer/TokenType";
 import { OperatorType } from "@/core/lexer/Operator";
 import { ParseExpressionOptions, consumeOperator, createTrace } from "./shared";
+import { parsePrimary } from "./parsePrimary";
+import { ArrayExpressionNode } from "./Expression";
 
 // Parse array pattern for identifier mode: [p1, p2, ...rest]
 export function parseArrayPattern(
     iterator: ParserIterator,
     options: ParseExpressionOptions,
-    parsePrimary: (iterator: ParserIterator, options: ParseExpressionOptions) => ExpressionNode | null
 ): ExpressionNode {
     const lb = iterator.popToken()!; // consume '['
     const elements: ExpressionNode[] = [];
     const nextDepth = (options.depth ?? 0) + 1;
 
     if (consumeOperator(iterator, OperatorType.RightBracket)) {
-        const node: ExpressionNode & { elements: ExpressionNode[] } = {
+        const node: ArrayExpressionNode = {
             type: NodeType.ArrayExpression,
             trace: { start: lb.start, end: lb.end },
-            children: [],
             elements,
         };
         return node;
@@ -33,7 +33,7 @@ export function parseArrayPattern(
         }
 
         let elem: ExpressionNode | null = null;
-        if (look.type === TokenType.Operator && (look as any).value === OperatorType.Ellipsis) {
+        if (look.type === TokenType.Operator && look.value === OperatorType.Ellipsis) {
             // reuse existing rest parsing (it will parse pattern on the right)
             elem = parsePrimary(iterator, { ...options, depth: nextDepth, identifier: true });
         } else {
@@ -47,7 +47,7 @@ export function parseArrayPattern(
         elements.push(elem);
 
         const sep = iterator.peekToken();
-        if (sep && sep.type === TokenType.Operator && (sep as any).value === OperatorType.Comma) {
+        if (sep && sep.type === TokenType.Operator && sep.value === OperatorType.Comma) {
             iterator.popToken();
             continue;
         }
@@ -55,15 +55,14 @@ export function parseArrayPattern(
     }
 
     const rb = iterator.peekToken();
-    if (!rb || rb.type !== TokenType.Operator || (rb as any).value !== OperatorType.RightBracket) {
+    if (!rb || rb.type !== TokenType.Operator || rb.value !== OperatorType.RightBracket) {
         throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ']' to close array pattern", rb ?? null);
     }
     iterator.popToken();
 
-    const node: ExpressionNode & { elements: ExpressionNode[] } = {
+    const node: ArrayExpressionNode = {
         type: NodeType.ArrayExpression,
         trace: createTrace(lb, rb),
-        children: elements,
         elements,
     };
     return node;

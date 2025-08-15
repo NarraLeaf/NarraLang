@@ -58,8 +58,8 @@ export interface BaseNode {
     trace: NodeTrace;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ExpressionNode extends BaseNode {
-    children: BaseNode[];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

@@ -18,7 +18,7 @@ export type StringToken =
     | { type: StringTokenType.String, value: string }
     | { type: StringTokenType.Expression, value: Tokens[] }
     | { type: StringTokenType.Tag, value: StringTag }
-    | { type: StringTokenType.CloseTag, value: string | null };
+    | { type: StringTokenType.CloseTag, value: Exclude<StringTagType, StringTagType.HexColor> | string | null };
 export const QuotationMarks = ["\"", "'"];
 
 /* Tag */
@@ -212,9 +212,23 @@ function tryParseTag(iterator: LexerIterator): StringToken | LexerError {
         }
         iterator.next(); // skip ">"
 
+        if (tagName) {
+            const tagType = getTagType(tagName);
+            if (!tagType) return new LexerError(LexerErrorType.UnknownTag, `Unknown tag: ${tagName}`, iterator.getIndex());
+
+            if (tagType.type === StringTagType.HexColor) {
+                return new LexerError(LexerErrorType.UnexpectedToken, `Unexpected token when parsing tag. Expected end of tag, but found ${iterator.getCurrentChar()}`, iterator.getIndex());
+            }
+
+            return {
+                type: StringTokenType.CloseTag,
+                value: tagType.type === StringTagType.NamedColor ? tagType.value : tagName,
+            };
+        }
+
         return {
             type: StringTokenType.CloseTag,
-            value: tagName,
+            value: null,
         };
     }
 

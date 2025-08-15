@@ -58,7 +58,7 @@ export function createTrace(start: Tokens, end: Tokens | null) {
 // Utility: try to consume a specific operator
 export function consumeOperator(iterator: ParserIterator, type: OperatorType): Tokens | null {
     const t = iterator.peekToken();
-    if (t && t.type === TokenType.Operator && (t as any).value === type) {
+    if (t && t.type === TokenType.Operator && t.value === type) {
         return iterator.popToken();
     }
     return null;

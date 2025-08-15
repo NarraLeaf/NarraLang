@@ -14,6 +14,7 @@ import {
 import { parsePrimary } from "./parsePrimary";
 import { parsePostfix } from "./parsePostfix";
 import { parseTernaryExpression } from "./parseTernary";
+import { TokenType } from "@/core/lexer/TokenType";
 
 export type { StopTokenMatcher, ParseExpressionOptions };
 
@@ -32,7 +33,7 @@ export function parseExpression(iterator: ParserIterator, options?: ParseExpress
     const stopOn = options?.stopOn;
 
     // 1) Parse primary
-    let left = parsePrimary(iterator, { ...options, depth: nextDepth }, parseExpression);
+    let left = parsePrimary(iterator, { ...options, depth: nextDepth });
     if (!left) {
         const t = iterator.peekToken();
         throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression", t ?? null);

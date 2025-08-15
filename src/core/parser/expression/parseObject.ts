@@ -1,25 +1,25 @@
+import { OperatorType } from "@/core/lexer/Operator";
+import { TokensTypeOf, TokenType } from "@/core/lexer/TokenType";
 import { ExpressionNode, NodeType } from "../Node";
 import { ParserError, ParserErrorType } from "../ParserError";
 import { ParserIterator } from "../ParserIterator";
-import { TokenType } from "@/core/lexer/TokenType";
-import { OperatorType } from "@/core/lexer/Operator";
+import { IdentifierNode, ObjectExpressionNode } from "./Expression";
+import { parsePrimary } from "./parsePrimary";
 import { ParseExpressionOptions, consumeOperator, createTrace } from "./shared";
 
 // Parse object pattern for identifier mode: { a, b: c, ...rest }
 export function parseObjectPattern(
     iterator: ParserIterator,
     options: ParseExpressionOptions,
-    parsePrimary: (iterator: ParserIterator, options: ParseExpressionOptions) => ExpressionNode | null
 ): ExpressionNode {
     const lb = iterator.popToken()!; // consume '{'
     const properties: ExpressionNode[] = [];
     const nextDepth = (options.depth ?? 0) + 1;
 
     if (consumeOperator(iterator, OperatorType.RightBrace)) {
-        const node: ExpressionNode & { properties: ExpressionNode[] } = {
+        const node: ObjectExpressionNode = {
             type: NodeType.ObjectExpression,
             trace: { start: lb.start, end: lb.end },
-            children: [],
             properties,
         };
         return node;
@@ -32,7 +32,7 @@ export function parseObjectPattern(
         }
 
         // Spread property: ...rest
-        if (look.type === TokenType.Operator && (look as any).value === OperatorType.Ellipsis) {
+        if (look.type === TokenType.Operator && look.value === OperatorType.Ellipsis) {
             const spread = parsePrimary(iterator, { ...options, depth: nextDepth, identifier: true });
             if (!spread) {
                 const w = iterator.peekToken();
@@ -41,16 +41,15 @@ export function parseObjectPattern(
             properties.push(spread);
         } else {
             // key [: valuePattern]
-            let keyNode: ExpressionNode | null = null;
+            let keyNode: IdentifierNode | null = null;
             const keyTok = iterator.peekToken();
             if (keyTok && keyTok.type === TokenType.Identifier) {
-                const tok = iterator.popToken()!;
+                const tok = iterator.popToken()! as TokensTypeOf<TokenType.Identifier>;
                 keyNode = {
                     type: NodeType.Identifier,
                     trace: { start: tok.start, end: tok.end },
-                    children: [],
-                    name: (tok as any).value as string,
-                } as any;
+                    name: tok.value,
+                };
             } else if (keyTok && keyTok.type === TokenType.String) {
                 const tok = iterator.popToken()!;
                 keyNode = {

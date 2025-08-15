@@ -36,6 +36,8 @@ export type TokenTrace = {
     start: number;
     end: number;
 };
+export type TokenTypeOf<T extends TokenType> = Extract<TokensValue, { type: T }>;
+export type TokensTypeOf<T extends TokenType> = Extract<TokensValue, { type: T }> & TokenTrace;
 
 export const EndOfFile = Symbol("EndOfFile");
 

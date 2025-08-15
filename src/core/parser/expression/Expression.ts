@@ -1,3 +1,4 @@
+import { RawStringTag } from "@/core/lexer/String";
 import { ExpressionNode, NodeType } from "../Node";
 import { BinaryOperator } from "./BinaryExpression";
 
@@ -59,14 +60,14 @@ interface TupleExpressionNode extends ExpressionNode {
     elements: ExpressionNode[];
 }
 
-type StringTag = {
-    name: string;
+export type StringTag = {
+    tag: RawStringTag;
     properties: Record<string, string | number> | null;
-    child: ExpressionNode | null;
+    children: (string | StringTag | ExpressionNode)[];
 };
 interface StringExpressionNode extends ExpressionNode {
     type: NodeType.StringExpression;
-    value: (string | StringTag | StringExpressionNode)[];
+    value: (string | StringTag | ExpressionNode)[];
 }
 
 interface RestExpressionNode extends ExpressionNode {

@@ -6,7 +6,7 @@ set subResult 10 - 4
 set mulResult 6 * 7
 set divResult 20 / 4
 set modResult 17 % 5
-set expResult 2 ^ 8
+set expResult 2 ** 8
 set negResult -42
 set posResult +3.14
 
@@ -39,21 +39,21 @@ set ternaryResult x > 0 ? "positive" : "negative"
 set ifElseResult "positive" if x > 0 else "negative"
 
 // 6. 复杂表达式测试
-set complexExpr (a + b) * (c - d) / (e ^ 2)
+set complexExpr (a + b) * (c - d) / (e ** 2)
 set nestedExpr Math.max(1, Math.min(10, x + y))
 set ternaryNested a > 0 ? (b > 0 ? "both positive" : "only a positive") : "a not positive"
 
 // 7. 操作符优先级测试
 set precedence1 2 + 3 * 4
 set precedence2 (2 + 3) * 4
-set precedence3 2 ^ 3 ^ 2
-set precedence4 (2 ^ 3) ^ 2
+set precedence3 2 ** 3 ** 2
+set precedence4 (2 ** 3) ** 2
 set precedence5 5 + 3 * 2 - 1
 set precedence6 (5 + 3) * (2 - 1)
 
 // 8. 操作符结合性测试
 set associativity1 10 - 5 - 3
-set associativity2 2 ^ 3 ^ 2
+set associativity2 2 ** 3 ** 2
 set associativity3 10 / 2 / 5
 set associativity4 1 + 2 + 3 + 4
 
@@ -137,8 +137,8 @@ set overload4 "hello" * 3
 set overload5 [1, 2, 3] * 2
 
 // 20. 特殊操作符测试
-set special1 5 ^ 3
-set special2 5 ^ 3
+set special1 5 ** 3
+set special2 5 ** 3
 set special3 5 ?? 3
 set special4 5 * 3
 set special5 5 * 3
@@ -174,8 +174,8 @@ set comma2 x + y
 
 // 25. 操作符错误处理测试
 set error1 5 / 0
-set error2 0 ^ 0
-set error3 1 ^ Infinity
+set error2 0 ** 0
+set error3 1 ** Infinity
 set error4 Math.sqrt(-1)
 set error5 Math.log(0)
 set error6 Math.asin(2)
