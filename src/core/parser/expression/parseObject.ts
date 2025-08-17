@@ -2,7 +2,7 @@ import { OperatorType } from "@/core/lexer/Operator";
 import { TokensTypeOf, TokenType } from "@/core/lexer/TokenType";
 import { ExpressionNode, NodeType } from "../Node";
 import { ParserError, ParserErrorType } from "../ParserError";
-import { ParserIterator } from "../ParserIterator";
+import { createParserIterator, ParserIterator } from "../ParserIterator";
 import { IdentifierNode, ObjectExpressionNode, StringExpressionNode, TupleExpressionNode } from "./Expression";
 import { parsePrimary } from "./parsePrimary";
 import { ParseExpressionOptions, consumeOperator, createTrace, resetBP } from "./shared";
@@ -33,6 +33,11 @@ export function parseObjectLiteral(
             throw new ParserError(ParserErrorType.UnexpectedToken, "Unclosed object literal", look);
         }
 
+        if (look.type === TokenType.NewLine) {
+            iterator.popToken();
+            continue;
+        }
+
         // key: expr
         let keyNode: IdentifierNode | StringExpressionNode | null = null;
         const keyTok = iterator.peekToken();
@@ -50,6 +55,20 @@ export function parseObjectLiteral(
                 type: NodeType.StringExpression,
                 trace: { start: tok.start, end: tok.end },
                 value: parsed,
+            };
+        } else if (keyTok && keyTok.type === TokenType.Dialogue) {
+            const tok = iterator.popToken()! as TokensTypeOf<TokenType.Dialogue>;
+            const nameIterator = createParserIterator(tok.value.character);
+            const name = parseExpression(nameIterator, resetBP({ ...options, depth: nextDepth }));
+            if (!name) {
+                throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after dialogue in object literal", tok);
+            }
+
+            const stringValue = parseRichString(tok.value.content);
+            keyNode = {
+                type: NodeType.StringExpression,
+                trace: { start: tok.start, end: tok.end },
+                value: stringValue,
             };
         } else {
             throw new ParserError(ParserErrorType.UnexpectedToken, "Expected identifier or string as object literal key", keyTok ?? null);

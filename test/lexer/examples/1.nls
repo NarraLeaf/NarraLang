@@ -16,11 +16,11 @@ scene Scene1(
     set x 100 // 设置一个变量
     set [first, ...rest] [1, 2,3,  4,5]
 
-    Nomina: 你好！这段文本同样可以使用\{x\}嵌套插值！
+    Nomina: "你好！这段文本同样可以使用\{x\}嵌套插值！"
 
     "unknown": {
-        而使用Dialogue可以便捷地使用引号（"）和插值，比如x + 1的值为{x + 1}
-        而多行Dialogue可以让一个人连续说很多行话
+        "而使用Dialogue可以便捷地插值，比如x + 1的值为{x + 1}"
+        "而多行Dialogue可以让一个人连续说很多行话"
     }
 }
 
@@ -28,3 +28,10 @@ function! macroFunc(*options) {
     // macro function with optional parameters
 }
 
+"<pause duration={1000} />" // 合法
+"<pause duration=1000 />" // 合法
+"<p ruby="図書館" />" // 合法
+"<p ruby='図書館' />" // 合法
+"<p ruby={"図書館"} />" // 合法
+"<p ruby={'図書館'} />" // 合法
+"昨日、<p ruby="図書館">としょかん</p>で本を借りました。"

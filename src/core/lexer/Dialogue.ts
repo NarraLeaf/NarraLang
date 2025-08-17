@@ -128,7 +128,6 @@ export function isDialogue(iterator: LexerIterator): boolean {
     const text = iterator.getRaw();
 
     // check if the text is on its own line
-    // Find the start of the current line by going backwards until we hit a newline or the beginning
     let lineStartIndex = startIndex;
     while (lineStartIndex > 0) {
         const prevChar = text[lineStartIndex - 1];
@@ -138,8 +137,6 @@ export function isDialogue(iterator: LexerIterator): boolean {
         lineStartIndex--;
     }
 
-    // Check if there are any non-whitespace characters before the current position on this line
-    // Skip leading whitespace (indentation) but reject if there's actual content
     let hasNonWhitespaceBefore = false;
     for (let i = lineStartIndex; i < startIndex; i++) {
         if (!WhiteSpace.includes(text[i])) {
@@ -147,59 +144,65 @@ export function isDialogue(iterator: LexerIterator): boolean {
             break;
         }
     }
-    
     if (hasNonWhitespaceBefore) {
-        return false; // There's actual content before the dialogue start (not just indentation)
+        return false;
     }
 
     // Find the colon position
     let colonIndex = -1;
     for (let i = startIndex; i < text.length; i++) {
         const char = text[i];
-
-        // If we hit a newline before finding colon, it's not a dialogue
         if (isNewLineAtIndex(iterator, i)) {
             return false;
         }
-
-        // Found colon
         if (char === Operators[OperatorType.Colon]) {
             colonIndex = i;
             break;
         }
     }
-
-    // Must have found a colon and have content after it
     if (colonIndex === -1 || colonIndex >= text.length - 1) {
         return false;
+    }
+
+    // Extra check: the content after the colon must be a double quote or { new line double quote
+    let j = colonIndex + 1;
+    while (j < text.length && WhiteSpace.includes(text[j])) j++;
+    const afterColon = text[j];
+
+    if (afterColon === '"') {
+        // OK: single line dialogue
+    } else if (afterColon === '{') {
+        let k = j + 1;
+        while (k < text.length && WhiteSpace.includes(text[k])) k++;
+        if (!isNewLineAtIndex(iterator, k)) return false; // { must be followed by a new line
+        k++;
+        while (k < text.length && WhiteSpace.includes(text[k])) k++;
+        if (text[k] !== '"') return false; // multi-line dialogue must start with a double quote
+    } else {
+        return false; // not a valid dialogue start
     }
 
     // Check if there's exactly one token before the colon
     const charNameText = text.slice(startIndex, colonIndex);
     const tempIterator = createLexerIterator(charNameText);
-    
-    let tokenCount = 0;
 
+    let tokenCount = 0;
     while (!tempIterator.isDone()) {
         const currentChar = tempIterator.getCurrentChar();
-        
         if (WhiteSpace.includes(currentChar)) {
             tempIterator.next();
             continue;
         }
-
-        // Try to parse a token
         const token = parseToken(tempIterator, { allowDialogue: false });
         if (LexerError.isLexerError(token)) {
-            return false; // Invalid token
+            return false;
         }
         if (token === null) {
             continue;
         }
-
         tokenCount++;
         if (tokenCount > 1) {
-            return false; // More than one token
+            return false;
         }
     }
 
