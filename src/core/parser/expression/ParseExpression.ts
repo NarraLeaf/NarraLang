@@ -37,7 +37,7 @@ export function parseExpression(iterator: ParserIterator, options?: ParseExpress
     // 1) Parse primary
     let left = parsePrimary(iterator, { ...options, depth: nextDepth });
     if (!left) {
-        const t = iterator.peekToken();
+        const t = iterator.getCurrentToken();
         throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression", t ?? null);
     }
 
@@ -46,7 +46,7 @@ export function parseExpression(iterator: ParserIterator, options?: ParseExpress
 
     // 3) Pratt loop for infix and ternary
     while (true) {
-        const look = iterator.peekToken();
+        const look = iterator.getCurrentToken();
         if (!look) break;
         if (matchesStopOn(look, stopOn)) break;
 
@@ -97,7 +97,7 @@ export function parseExpression(iterator: ParserIterator, options?: ParseExpress
         const rightMinBP = isRightAssociative(op) ? bp : bp + 1;
         const right = parseExpression(iterator, { ...options, depth: nextDepth, minBP: rightMinBP });
         if (!right) {
-            const w = iterator.peekToken();
+            const w = iterator.getCurrentToken();
             throw new ParserError(ParserErrorType.ExpectedExpression, "Expected right-hand expression", w ?? opTok);
         }
 

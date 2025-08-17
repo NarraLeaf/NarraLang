@@ -9,7 +9,7 @@ import { parseExpression } from "./ParseExpression";
 import { TupleExpressionNode } from "./Expression";
 
 // Parse tuple expression or grouped expression: (a, b, c) or (single_expr)
-export function parseTupleOrGroup(
+export function parseBrackets(
     iterator: ParserIterator, 
     options: ParseExpressionOptions,
 ): ExpressionNode | null {
@@ -31,7 +31,7 @@ export function parseTupleOrGroup(
     // Parse inner expression; allow tuple via commas
     const firstExpr = parseExpression(iterator, resetBP({ ...options, depth: nextDepth }));
     if (!firstExpr) {
-        const w = iterator.peekToken();
+        const w = iterator.getCurrentToken();
         throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after '('", w ?? lp);
     }
 
@@ -40,13 +40,13 @@ export function parseTupleOrGroup(
     let hasComma = false;
     
     while (true) {
-        const comma = iterator.peekToken();
+        const comma = iterator.getCurrentToken();
         if (comma && comma.type === TokenType.Operator && comma.value === OperatorType.Comma) {
             hasComma = true; // Mark that we found a comma
             iterator.popToken();
             
             // Handle trailing comma case: (expr,)
-            const next = iterator.peekToken();
+            const next = iterator.getCurrentToken();
             if (next && next.type === TokenType.Operator && next.value === OperatorType.RightParenthesis) {
                 // Trailing comma found, this is definitely a tuple
                 break;
@@ -54,7 +54,7 @@ export function parseTupleOrGroup(
             
             const nextItem = parseExpression(iterator, resetBP({ ...options, depth: nextDepth }));
             if (!nextItem) {
-                const w = iterator.peekToken();
+                const w = iterator.getCurrentToken();
                 throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after ','", w ?? comma);
             }
             items.push(nextItem);
@@ -63,7 +63,7 @@ export function parseTupleOrGroup(
         break;
     }
 
-    const rp = iterator.peekToken();
+    const rp = iterator.getCurrentToken();
     if (!rp || rp.type !== TokenType.Operator || rp.value !== OperatorType.RightParenthesis) {
         throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ')' to close group/tuple", rp ?? null);
     }
@@ -104,12 +104,12 @@ export function parseTuplePattern(
     while (true) {
         const part = parsePrimary(iterator, { ...options, depth: nextDepth, identifier: true });
         if (!part) {
-            const w = iterator.peekToken();
+            const w = iterator.getCurrentToken();
             throw new ParserError(ParserErrorType.ExpectedExpression, "Expected pattern inside tuple", w ?? lp);
         }
         elements.push(part);
 
-        const sep = iterator.peekToken();
+        const sep = iterator.getCurrentToken();
         if (sep && sep.type === TokenType.Operator && sep.value === OperatorType.Comma) {
             iterator.popToken();
             continue;
@@ -117,7 +117,7 @@ export function parseTuplePattern(
         break;
     }
 
-    const rp = iterator.peekToken();
+    const rp = iterator.getCurrentToken();
     if (!rp || rp.type !== TokenType.Operator || rp.value !== OperatorType.RightParenthesis) {
         throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ')' to close tuple pattern", rp ?? null);
     }

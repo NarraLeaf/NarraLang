@@ -14,14 +14,14 @@ export function parsePostfix(
     options: ParseExpressionOptions,
 ): ExpressionNode {
     while (true) {
-        const t = iterator.peekToken();
+        const t = iterator.getCurrentToken();
         if (!t) break;
         if (matchesStopOn(t, options.stopOn)) break;
 
         // Member access: .identifier
         if (t.type === TokenType.Operator && t.value === OperatorType.Dot) {
             const dot = iterator.popToken()!;
-            const prop = iterator.peekToken();
+            const prop = iterator.getCurrentToken();
             if (!prop || prop.type !== TokenType.Identifier) {
                 throw new ParserError(ParserErrorType.ExpectedIdentifier, "Expected identifier after '.'", prop ?? dot);
             }

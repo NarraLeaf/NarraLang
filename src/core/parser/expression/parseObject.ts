@@ -28,7 +28,7 @@ export function parseObjectLiteral(
     }
 
     while (true) {
-        const look = iterator.peekToken();
+        const look = iterator.getCurrentToken();
         if (!look) {
             throw new ParserError(ParserErrorType.UnexpectedToken, "Unclosed object literal", look);
         }
@@ -40,7 +40,7 @@ export function parseObjectLiteral(
 
         // key: expr
         let keyNode: IdentifierNode | StringExpressionNode | null = null;
-        const keyTok = iterator.peekToken();
+        const keyTok = iterator.getCurrentToken();
         if (keyTok && keyTok.type === TokenType.Identifier) {
             const tok = iterator.popToken()! as TokensTypeOf<TokenType.Identifier>;
             keyNode = {
@@ -75,7 +75,7 @@ export function parseObjectLiteral(
         }
 
         // Required ':' for object literal
-        const maybeColon = iterator.peekToken();
+        const maybeColon = iterator.getCurrentToken();
         if (!maybeColon || maybeColon.type !== TokenType.Operator || maybeColon.value !== OperatorType.Colon) {
             throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ':' after object literal key", maybeColon ?? null);
         }
@@ -83,7 +83,7 @@ export function parseObjectLiteral(
 
         const valueExpr = parseExpression(iterator, resetBP({ ...options, depth: nextDepth }));
         if (!valueExpr) {
-            const w = iterator.peekToken();
+            const w = iterator.getCurrentToken();
             throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after ':' in object literal", w ?? maybeColon);
         }
 
@@ -95,15 +95,17 @@ export function parseObjectLiteral(
         };
         properties.push(pair);
 
-        const sep = iterator.peekToken();
+        iterator.skipNewLine();
+
+        const sep = iterator.getCurrentToken();
         if (sep && sep.type === TokenType.Operator && sep.value === OperatorType.Comma) {
-            iterator.popToken();
+            iterator.popToken(); // consume ','
             continue;
         }
         break;
     }
 
-    const rb = iterator.peekToken();
+    const rb = iterator.getCurrentToken();
     if (!rb || rb.type !== TokenType.Operator || rb.value !== OperatorType.RightBrace) {
         throw new ParserError(ParserErrorType.UnexpectedToken, "Expected '}' to close object literal", rb ?? null);
     }
@@ -136,7 +138,7 @@ export function parseObjectPattern(
     }
 
     while (true) {
-        const look = iterator.peekToken();
+        const look = iterator.getCurrentToken();
         if (!look) {
             throw new ParserError(ParserErrorType.UnexpectedToken, "Unclosed object pattern", look);
         }
@@ -145,14 +147,14 @@ export function parseObjectPattern(
         if (look.type === TokenType.Operator && look.value === OperatorType.Ellipsis) {
             const spread = parsePrimary(iterator, { ...options, depth: nextDepth, identifier: true });
             if (!spread) {
-                const w = iterator.peekToken();
+                const w = iterator.getCurrentToken();
                 throw new ParserError(ParserErrorType.ExpectedExpression, "Expected pattern after '...' in object", w ?? look);
             }
             properties.push(spread);
         } else {
             // key [: valuePattern]
             let keyNode: IdentifierNode | StringExpressionNode | null = null;
-            const keyTok = iterator.peekToken();
+            const keyTok = iterator.getCurrentToken();
             if (keyTok && keyTok.type === TokenType.Identifier) {
                 const tok = iterator.popToken()! as TokensTypeOf<TokenType.Identifier>;
                 keyNode = {
@@ -173,12 +175,12 @@ export function parseObjectPattern(
             }
 
             // Optional ':' value pattern
-            const maybeColon = iterator.peekToken();
+            const maybeColon = iterator.getCurrentToken();
             if (maybeColon && maybeColon.type === TokenType.Operator && maybeColon.value === OperatorType.Colon) {
                 iterator.popToken();
                 const valuePattern = parsePrimary(iterator, { ...options, depth: nextDepth, identifier: true });
                 if (!valuePattern) {
-                    const w = iterator.peekToken();
+                    const w = iterator.getCurrentToken();
                     throw new ParserError(ParserErrorType.ExpectedExpression, "Expected pattern after ':' in object", w ?? maybeColon);
                 }
                 // Store as a 2-tuple [key, value]
@@ -199,7 +201,7 @@ export function parseObjectPattern(
             }
         }
 
-        const sep = iterator.peekToken();
+        const sep = iterator.getCurrentToken();
         if (sep && sep.type === TokenType.Operator && sep.value === OperatorType.Comma) {
             iterator.popToken();
             continue;
@@ -207,7 +209,7 @@ export function parseObjectPattern(
         break;
     }
 
-    const rb = iterator.peekToken();
+    const rb = iterator.getCurrentToken();
     if (!rb || rb.type !== TokenType.Operator || rb.value !== OperatorType.RightBrace) {
         throw new ParserError(ParserErrorType.UnexpectedToken, "Expected '}' to close object pattern", rb ?? null);
     }

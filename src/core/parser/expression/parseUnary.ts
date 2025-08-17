@@ -21,7 +21,7 @@ export function parseUnaryLogicalNot(
     });
     
     if (!rhs) {
-        const w = iterator.peekToken();
+        const w = iterator.getCurrentToken();
         throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after '!'", w ?? opTok);
     }
     
@@ -48,7 +48,7 @@ export function parseUnaryMinus(
     });
     
     if (!rhs) {
-        const w = iterator.peekToken();
+        const w = iterator.getCurrentToken();
         throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after unary '-'", w ?? opTok);
     }
     
@@ -75,7 +75,7 @@ export function parseRestExpression(
     });
     
     if (!value) {
-        const w = iterator.peekToken();
+        const w = iterator.getCurrentToken();
         throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after '...'", w ?? el);
     }
     

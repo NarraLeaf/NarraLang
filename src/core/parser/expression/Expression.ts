@@ -73,8 +73,22 @@ interface RestExpressionNode extends ExpressionNode {
     value: ExpressionNode;
 }
 
+interface FunctionExpressionNode extends ExpressionNode {
+    type: NodeType.FunctionExpression;
+    params: { name: string; defaultValue: ExpressionNode | null }[];
+    rest: string | null;
+    body: ExpressionNode | ExpressionNode[]; // Single expression for lambda, statements for anonymous function
+}
+
+interface MacroExpressionNode extends ExpressionNode {
+    type: NodeType.MacroExpression;
+    params: { name: string; defaultValue: null }[];
+    modifiers: { name: string; defaultValue: ExpressionNode | null }[];
+    body: ExpressionNode[];
+}
+
 export {
-    ArrayExpressionNode, BinaryExpressionNode, CallExpressionNode, IdentifierNode,
-    LiteralNode, MemberExpressionNode, ObjectExpressionNode, RestExpressionNode, StringExpressionNode, TernaryExpressionNode, TupleExpressionNode, UnaryExpressionNode
+    ArrayExpressionNode, BinaryExpressionNode, CallExpressionNode, FunctionExpressionNode, IdentifierNode,
+    LiteralNode, MacroExpressionNode, MemberExpressionNode, ObjectExpressionNode, RestExpressionNode, StringExpressionNode, TernaryExpressionNode, TupleExpressionNode, UnaryExpressionNode
 };
 

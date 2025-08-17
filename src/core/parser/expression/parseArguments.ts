@@ -16,7 +16,7 @@ export function parseArgumentList(
     let last: Tokens | null = null;
 
     // Empty argument list: immediately ")"
-    const maybeRight = iterator.peekToken();
+    const maybeRight = iterator.getCurrentToken();
     if (maybeRight && maybeRight.type === TokenType.Operator && maybeRight.value === OperatorType.RightParenthesis) {
         last = iterator.popToken();
         return { args, last };
@@ -32,18 +32,18 @@ export function parseArgumentList(
             ],
         }));
         if (!expr) {
-            const t = iterator.peekToken();
+            const t = iterator.getCurrentToken();
             throw new ParserError(ParserErrorType.ExpectedExpression, "Expected argument expression", t ?? null);
         }
         args.push(expr);
 
-        const sep = iterator.peekToken();
+        const sep = iterator.getCurrentToken();
         if (sep && sep.type === TokenType.Operator && sep.value === OperatorType.Comma) {
             last = iterator.popToken();
             continue; // next argument
         }
 
-        const end = iterator.peekToken();
+        const end = iterator.getCurrentToken();
         if (end && end.type === TokenType.Operator && end.value === OperatorType.RightParenthesis) {
             last = iterator.popToken();
             break;

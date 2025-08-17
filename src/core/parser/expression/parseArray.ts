@@ -29,7 +29,7 @@ export function parseArrayLiteral(
 
     let exit = false;
     while (!exit) {
-        const look = iterator.peekToken();
+        const look = iterator.getCurrentToken();
         if (!look) {
             throw new ParserError(ParserErrorType.UnexpectedToken, "Unclosed array literal", look);
         }
@@ -37,12 +37,12 @@ export function parseArrayLiteral(
         // Parse expression element
         const elem = parseExpression(iterator, resetBP({ ...options, depth: nextDepth }));
         if (!elem) {
-            const w = iterator.peekToken();
+            const w = iterator.getCurrentToken();
             throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression inside array", w ?? lb);
         }
         elements.push(elem);
 
-        const sep = iterator.peekToken();
+        const sep = iterator.getCurrentToken();
         if (sep && sep.type === TokenType.Operator && sep.value === OperatorType.Comma) {
             iterator.popToken();
             continue;
@@ -52,7 +52,7 @@ export function parseArrayLiteral(
         break;
     }
 
-    const rb = iterator.peekToken();
+    const rb = iterator.getCurrentToken();
     if (!rb || rb.type !== TokenType.Operator || rb.value !== OperatorType.RightBracket) {
         throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ']' to close array literal", rb ?? null);
     }
@@ -86,7 +86,7 @@ export function parseArrayPattern(
 
     while (true) {
         // Support rest element or normal pattern
-        const look = iterator.peekToken();
+        const look = iterator.getCurrentToken();
         if (!look) {
             throw new ParserError(ParserErrorType.UnexpectedToken, "Unclosed array pattern", look);
         }
@@ -100,12 +100,12 @@ export function parseArrayPattern(
         }
 
         if (!elem) {
-            const w = iterator.peekToken();
+            const w = iterator.getCurrentToken();
             throw new ParserError(ParserErrorType.ExpectedExpression, "Expected pattern inside array", w ?? lb);
         }
         elements.push(elem);
 
-        const sep = iterator.peekToken();
+        const sep = iterator.getCurrentToken();
         if (sep && sep.type === TokenType.Operator && sep.value === OperatorType.Comma) {
             iterator.popToken();
             continue;
@@ -113,7 +113,7 @@ export function parseArrayPattern(
         break;
     }
 
-    const rb = iterator.peekToken();
+    const rb = iterator.getCurrentToken();
     if (!rb || rb.type !== TokenType.Operator || rb.value !== OperatorType.RightBracket) {
         throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ']' to close array pattern", rb ?? null);
     }

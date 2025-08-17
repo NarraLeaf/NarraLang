@@ -16,12 +16,15 @@ export type ParserIterator = {
 
     getCurrentToken(): Tokens | null;
     peekToken(offset?: number): Tokens | null;
-    popToken(): Tokens | null;
+    popToken(ignores?: TokenType[]): Tokens | null;
     popTokenIf(fn: (token: Tokens) => boolean): Tokens | null;
     consume(node?: ParsedNode): Tokens | null;
 
     getResult(): ParsedNode[];
     isDone(): boolean;
+
+    // utils
+    skipNewLine(): void;
 };
 
 export function createParserIterator(tokens: Tokens[]): ParserIterator {
@@ -59,17 +62,35 @@ export function createParserIterator(tokens: Tokens[]): ParserIterator {
 
     const getCurrentToken = () => { return currentToken; };
     const peekToken = (offset: number = 1) => {
-        // 1-based from current position for backward compatibility
-        return cache[index + offset - 1] ?? null; 
+        return cache[index + offset] ?? null; 
     };
-    const popToken = () => { 
+    const popToken = (ignores?: TokenType[]) => { 
         if (index >= cache.length) {
             return null;
         }
-        const token = cache[index];
-        index += 1;
-        currentToken = cache[index] ?? null;
-        return token ?? null;
+
+        // If no ignores specified, use original simple logic
+        if (!ignores || ignores.length === 0) {
+            const token = cache[index];
+            index += 1;
+            currentToken = cache[index] ?? null;
+            return token ?? null;
+        }
+
+        // Handle ignores case
+        while (index < cache.length) {
+            const token = cache[index];
+            index += 1;
+
+            if (!ignores.includes(token.type)) {
+                currentToken = cache[index] ?? null;
+                return token;
+            }
+        }
+
+        // All remaining tokens were ignored, update currentToken to null
+        currentToken = null;
+        return null;
     };
     const popTokenIf = (fn: (token: Tokens) => boolean) => {
         const peek = peekToken();
@@ -108,6 +129,12 @@ export function createParserIterator(tokens: Tokens[]): ParserIterator {
         return index >= cache.length;
     };
 
+    const skipNewLine = () => {
+        while (currentToken && currentToken.type === TokenType.NewLine) {
+            popToken();
+        }
+    };
+
     return {
         getParsed,
         getContext,
@@ -123,6 +150,7 @@ export function createParserIterator(tokens: Tokens[]): ParserIterator {
         consume,
         getResult,
         isDone,
+        skipNewLine,
     };
 }
 

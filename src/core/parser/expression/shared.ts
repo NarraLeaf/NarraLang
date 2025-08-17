@@ -56,7 +56,7 @@ export function createTrace(start: Tokens, end: Tokens | number | null) {
 
 // Utility: try to consume a specific operator
 export function consumeOperator(iterator: ParserIterator, type: OperatorType): Tokens | null {
-    const t = iterator.peekToken();
+    const t = iterator.getCurrentToken();
     if (t && t.type === TokenType.Operator && t.value === type) {
         return iterator.popToken();
     }
@@ -65,13 +65,13 @@ export function consumeOperator(iterator: ParserIterator, type: OperatorType): T
 
 // Utility: peek operator type if next token is an operator
 export function peekOperatorType(iterator: ParserIterator): OperatorType | null {
-    const t = iterator.peekToken();
+    const t = iterator.getCurrentToken();
     if (!t || t.type !== TokenType.Operator) return null;
     return (t as TokensTypeOf<TokenType.Operator>).value as OperatorType;
 }
 
 export function peekKeywordType(iterator: ParserIterator): KeywordType | null {
-    const t = iterator.peekToken();
+    const t = iterator.getCurrentToken();
     if (!t || t.type !== TokenType.Keyword) return null;
     return (t as TokensTypeOf<TokenType.Keyword>).value as KeywordType;
 }

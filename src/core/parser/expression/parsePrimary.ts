@@ -3,20 +3,22 @@ import { TokensTypeOf, TokenType } from "@/core/lexer/TokenType";
 import { ExpressionNode, NodeType } from "../Node";
 import { ParserError, ParserErrorType } from "../ParserError";
 import { ParserIterator } from "../ParserIterator";
-import { IdentifierNode, LiteralNode, StringExpressionNode } from "./Expression";
+import { IdentifierNode, LiteralNode, StringExpressionNode, FunctionExpressionNode } from "./Expression";
 import { parseArrayPattern, parseArrayLiteral } from "./parseArray";
 import { parseObjectPattern, parseObjectLiteral } from "./parseObject";
-import { parseTupleOrGroup, parseTuplePattern } from "./parseTuple";
+import { parseBrackets, parseTuplePattern } from "./parseTuple";
 import { parseRestExpression, parseUnaryLogicalNot, parseUnaryMinus } from "./parseUnary";
 import { Atoms, ParseExpressionOptions, resetBP } from "./shared";
 import { parseRichString } from "./parseRichString";
+import { KeywordType } from "@/core/lexer/Keyword";
+import { isLambdaExpression, parseLambdaExpression } from "./parseLambda";
 
 // Parse: primary expression (identifier, literal, string, grouping, unary, rest)
 export function parsePrimary(
-    iterator: ParserIterator, 
+    iterator: ParserIterator,
     options: ParseExpressionOptions,
 ): ExpressionNode | null {
-    const t = iterator.peekToken();
+    const t = iterator.getCurrentToken();
     if (!t) return null;
 
     // Identifier-only mode (pattern placeholder).
@@ -50,9 +52,9 @@ export function parsePrimary(
         throw new ParserError(ParserErrorType.ExpectedIdentifier, "Expected pattern (identifier/tuple/array/object)", t);
     }
 
-    // Grouping: ( ... ) or call start (handled as postfix later)
+    // Grouping: ( ... ) or lambda: (params) => expr or call start (handled as postfix later)
     if (t.type === TokenType.Operator && t.value === OperatorType.LeftParenthesis) {
-        return parseTupleOrGroup(iterator, resetBP(options));
+        return parsePossibleLambda(iterator, resetBP(options));
     }
 
     // Rest expression: ...expr
@@ -78,6 +80,11 @@ export function parsePrimary(
     // Object literal: {a: 1, b: 2}
     if (t.type === TokenType.Operator && t.value === OperatorType.LeftBrace) {
         return parseObjectLiteral(iterator, resetBP(options));
+    }
+
+    // Function expression: function(params) { ... } or lambda: (params) => expr
+    if (t.type === TokenType.Keyword && t.value === KeywordType.Function) {
+        return parseFunctionExpression(iterator, resetBP(options));
     }
 
     // Simple atoms: identifier and literals
@@ -107,11 +114,59 @@ export function parsePrimary(
             value: (tok.type === TokenType.NumberLiteral
                 ? tok.value
                 : tok.type === TokenType.BooleanLiteral
-                ? tok.value
-                : null),
+                    ? tok.value
+                    : null),
         };
         return node;
     }
 
     return null;
+}
+
+/**
+ * Parse function expression: function(params) { body }
+ * TODO: Implement when statement parsing is ready
+ */
+function parseFunctionExpression(
+    iterator: ParserIterator,
+    _options: ParseExpressionOptions,
+): FunctionExpressionNode {
+    const startToken = iterator.popToken()!; // consume 'function'
+
+    // For now, return a placeholder
+    // TODO: Parse parameters and body when ready
+    return {
+        type: NodeType.FunctionExpression,
+        trace: { start: startToken.start, end: startToken.end },
+        params: [],
+        rest: null,
+        body: [], // TODO: parse body statements
+    };
+}
+
+/**
+ * Parse possible lambda expression or grouping: (params) => expr or (expr)
+ * Uses lookahead to distinguish between lambda and tuple/grouping
+ */
+function parsePossibleLambda(
+    iterator: ParserIterator,
+    options: ParseExpressionOptions,
+): ExpressionNode {
+    // Note: Could save position for backtracking if needed in future
+
+    // Try to parse as lambda first by checking for '=>' after closing parenthesis
+    if (isLambdaExpression(iterator)) {
+        return parseLambdaExpression(iterator, options);
+    }
+
+    // If not a lambda, parse as tuple/grouping
+    const result = parseBrackets(iterator, options);
+    if (!result) {
+        throw new ParserError(
+            ParserErrorType.ExpectedExpression,
+            "Expected expression in parentheses",
+            iterator.getCurrentToken()
+        );
+    }
+    return result;
 }

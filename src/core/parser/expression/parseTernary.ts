@@ -24,11 +24,11 @@ export function parseTernaryExpression(
     });
     
     if (!trueExpr) {
-        const w = iterator.peekToken();
+        const w = iterator.getCurrentToken();
         throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after '?'", w ?? qm);
     }
     
-    const colon = iterator.peekToken();
+    const colon = iterator.getCurrentToken();
     if (!colon || colon.type !== TokenType.Operator || colon.value !== OperatorType.Colon) {
         throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ':' in ternary expression", colon ?? null);
     }
@@ -41,7 +41,7 @@ export function parseTernaryExpression(
     });
     
     if (!falseExpr) {
-        const w = iterator.peekToken();
+        const w = iterator.getCurrentToken();
         throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after ':'", w ?? colonTok);
     }
     
