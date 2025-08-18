@@ -4,10 +4,14 @@ import { Tokens } from "../lexer/TokenType";
 export enum ParserErrorType {
     ExpectedVariableDeclaration = "ExpectedVariableDeclaration",
     ExpectedIdentifier = "ExpectedIdentifier",
+    ExpectedKeyword = "ExpectedKeyword",
+    ExpectedToken = "ExpectedToken",
+    ExpectedStatement = "ExpectedStatement",
 
     UnexpectedToken = "UnexpectedToken",
     ExpectedExpression = "ExpectedExpression",
     InvalidVariableDeclaration = "InvalidVariableDeclaration",
+    InvalidContext = "InvalidContext",
     UnknownError = "UnknownError",
 }
 
