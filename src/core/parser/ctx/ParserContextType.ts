@@ -6,8 +6,8 @@ export enum ParserContextType {
 
     Root,
 
-    MacroDeclaration,
     MacroBody,
     LocalDeclaration,
+    Cleanup,
 }
 

@@ -1,6 +1,6 @@
 import { ParserIterator } from "../ParserIterator";
-import { BlockStatementNode, StatementNode } from "./Statement";
-import { NodeType } from "../Node";
+import { BlockStatementNode } from "./Statement";
+import { NodeType, StatementNode } from "../Node";
 import { OperatorType } from "@/core/lexer/Operator";
 import { ParserError, ParserErrorType } from "../ParserError";
 import { trace } from "../Trace";

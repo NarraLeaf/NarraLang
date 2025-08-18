@@ -3,7 +3,7 @@ import { TokensTypeOf, TokenType } from "@/core/lexer/TokenType";
 import { ExpressionNode, NodeType } from "../Node";
 import { ParserError, ParserErrorType } from "../ParserError";
 import { ParserIterator } from "../ParserIterator";
-import { IdentifierNode, LiteralNode, StringExpressionNode, FunctionExpressionNode } from "./Expression";
+import { IdentifierNode, LiteralNode, StringExpressionNode } from "./Expression";
 import { parseArrayPattern, parseArrayLiteral } from "./parseArray";
 import { parseObjectPattern, parseObjectLiteral } from "./parseObject";
 import { parseBrackets, parseTuplePattern } from "./parseTuple";
@@ -12,6 +12,7 @@ import { Atoms, ParseExpressionOptions, resetBP } from "./shared";
 import { parseRichString } from "./parseRichString";
 import { KeywordType } from "@/core/lexer/Keyword";
 import { isLambdaExpression, parseLambdaExpression } from "./parseLambda";
+import { parseFunctionExpression } from "./parseFunctionExpression";
 
 // Parse: primary expression (identifier, literal, string, grouping, unary, rest)
 export function parsePrimary(
@@ -82,7 +83,7 @@ export function parsePrimary(
         return parseObjectLiteral(iterator, resetBP(options));
     }
 
-    // Function expression: function(params) { ... } or lambda: (params) => expr
+    // Function expression: function(params) { ... } or function name(params) { ... }
     if (t.type === TokenType.Keyword && t.value === KeywordType.Function) {
         return parseFunctionExpression(iterator, resetBP(options));
     }
@@ -123,26 +124,7 @@ export function parsePrimary(
     return null;
 }
 
-/**
- * Parse function expression: function(params) { body }
- * TODO: Implement when statement parsing is ready
- */
-function parseFunctionExpression(
-    iterator: ParserIterator,
-    _options: ParseExpressionOptions,
-): FunctionExpressionNode {
-    const startToken = iterator.popToken()!; // consume 'function'
 
-    // For now, return a placeholder
-    // TODO: Parse parameters and body when ready
-    return {
-        type: NodeType.FunctionExpression,
-        trace: { start: startToken.start, end: startToken.end },
-        params: [],
-        rest: null,
-        body: [], // TODO: parse body statements
-    };
-}
 
 /**
  * Parse possible lambda expression or grouping: (params) => expr or (expr)

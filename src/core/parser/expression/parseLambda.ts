@@ -6,6 +6,10 @@ import { ParserIterator } from "../ParserIterator";
 import { FunctionExpressionNode } from "./Expression";
 import { ParseExpressionOptions } from "./shared";
 import { parseExpression } from "./ParseExpression";
+import { BlockStatementNode, parseBlockStatement } from "../statement";
+import { trace } from "../Trace";
+import { parseFunctionParams } from "../shared/parseParams";
+import { ParserFunctionContext } from "../ctx/Contexts";
 
 /**
  * Check if the upcoming tokens form a lambda expression pattern
@@ -45,134 +49,7 @@ export function isLambdaExpression(iterator: ParserIterator): boolean {
     }
 }
 
-/**
- * Parse lambda parameter with optional default value
- * Supports: name, name = defaultValue, ...restParam
- * Reuses logic from FunctionDeclaration parsing
- */
-function parseLambdaParam(iterator: ParserIterator): {
-    name: string;
-    defaultValue: ExpressionNode | null;
-    isRest: boolean;
-} {
-    let isRest = false;
 
-    iterator.skipNewLine();
-    
-    // Check for rest parameter (...)
-    const restToken = iterator.getCurrentToken();
-    if (restToken?.type === TokenType.Operator && restToken.value === OperatorType.Ellipsis) {
-        iterator.popToken(); // consume ...
-        isRest = true;
-    }
-    
-    // Get parameter name
-    const nameToken = iterator.popToken();
-    if (!nameToken || nameToken.type !== TokenType.Identifier) {
-        throw new ParserError(
-            ParserErrorType.ExpectedIdentifier,
-            "Expected parameter name",
-            nameToken
-        );
-    }
-    
-    const name = nameToken.value;
-    let defaultValue: ExpressionNode | null = null;
-    
-    // Check for default value (only for non-rest parameters)
-    if (!isRest) {
-        const equalsToken = iterator.getCurrentToken();
-        if (equalsToken?.type === TokenType.Operator && equalsToken.value === OperatorType.LogicalEquals) {
-            iterator.popToken(); // consume =
-            defaultValue = parseExpression(iterator);
-            if (!defaultValue) {
-                throw new ParserError(
-                    ParserErrorType.ExpectedExpression,
-                    "Expected default value expression",
-                    iterator.getCurrentToken()
-                );
-            }
-        }
-    }
-    
-    return { name, defaultValue, isRest };
-}
-
-/**
- * Parse lambda parameter list: (param1, param2 = default, ...rest)
- * Reuses and adapts logic from FunctionDeclaration parsing
- */
-function parseLambdaParams(iterator: ParserIterator): {
-    params: { name: string; defaultValue: ExpressionNode | null }[];
-    rest: string | null;
-} {
-    const params: { name: string; defaultValue: ExpressionNode | null }[] = [];
-    let rest: string | null = null;
-    
-    // Expect opening parenthesis
-    const openParen = iterator.popToken();
-    if (!openParen || openParen.type !== TokenType.Operator || openParen.value !== OperatorType.LeftParenthesis) {
-        throw new ParserError(
-            ParserErrorType.UnexpectedToken,
-            "Expected '(' in lambda expression",
-            openParen
-        );
-    }
-    
-    // Parse parameters
-    while (true) {
-        iterator.skipNewLine();
-        
-        const token = iterator.getCurrentToken();
-        if (!token) {
-            throw new ParserError(
-                ParserErrorType.UnexpectedToken,
-                "Unexpected end of file in lambda parameter list",
-                null
-            );
-        }
-        
-        // Check for closing parenthesis
-        if (token.type === TokenType.Operator && token.value === OperatorType.RightParenthesis) {
-            iterator.popToken(); // consume )
-            break;
-        }
-        
-        // Parse parameter
-        const param = parseLambdaParam(iterator);
-        
-        if (param.isRest) {
-            if (rest !== null) {
-                throw new ParserError(
-                    ParserErrorType.UnknownError,
-                    "Only one rest parameter is allowed",
-                    token
-                );
-            }
-            rest = param.name;
-        } else {
-            params.push({ name: param.name, defaultValue: param.defaultValue });
-        }
-        
-        // Check for comma or end
-        const nextToken = iterator.getCurrentToken();
-        if (nextToken?.type === TokenType.Operator && nextToken.value === OperatorType.Comma) {
-            iterator.popToken(); // consume comma
-            continue;
-        } else if (nextToken?.type === TokenType.Operator && nextToken.value === OperatorType.RightParenthesis) {
-            iterator.popToken(); // consume )
-            break;
-        } else {
-            throw new ParserError(
-                ParserErrorType.UnexpectedToken,
-                "Expected ',' or ')' in lambda parameter list, got " + (nextToken?.type || "end of file"),
-                nextToken
-            );
-        }
-    }
-    
-    return { params, rest };
-}
 
 /**
  * Parse lambda expression: (params) => expr
@@ -184,8 +61,8 @@ export function parseLambdaExpression(
 ): FunctionExpressionNode {
     const startToken = iterator.getCurrentToken()!; // The '(' token
 
-    // Parse parameters using reusable logic
-    const { params, rest } = parseLambdaParams(iterator);
+    // Parse parameters using shared logic
+    const { params, rest } = parseFunctionParams(iterator);
 
     // Consume the '=>'
     const arrowToken = iterator.popToken();
@@ -197,21 +74,38 @@ export function parseLambdaExpression(
         );
     }
 
-    // Parse the body expression
-    const bodyExpression = parseExpression(iterator, options);
-    if (!bodyExpression) {
+    const currentToken = iterator.getCurrentToken();
+    if (!currentToken) {
         throw new ParserError(
-            ParserErrorType.ExpectedExpression,
-            "Expected expression after '=>' in lambda",
-            iterator.getCurrentToken()
+            ParserErrorType.UnexpectedToken,
+            "Unexpected end of file in lambda expression",
+            null
+        );
+    }
+
+    const body: ExpressionNode | BlockStatementNode | null = currentToken.type === TokenType.Operator && currentToken.value === OperatorType.LeftBrace
+        ? iterator.getContext().context(new ParserFunctionContext(), () => {
+            return parseBlockStatement(iterator, {
+                allowDialogue: false,
+                depth: 0,
+                maxDepth: 100,
+            });
+        })
+        : parseExpression(iterator, options);
+    if (!body) {
+        throw new ParserError(
+            ParserErrorType.UnexpectedToken,
+            "Unexpected end of file in lambda expression",
+            null
         );
     }
 
     return {
         type: NodeType.FunctionExpression,
-        trace: { start: startToken.start, end: bodyExpression.trace.end },
+        trace: trace(startToken.start, body.trace.end),
         params,
         rest,
-        body: [bodyExpression], // Lambda body is a single expression
+        name: null,
+        body,
     };
 }

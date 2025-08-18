@@ -16,7 +16,7 @@ import { parseLocalDeclaration } from "./LocalDeclaration";
 import { parseIfStatement } from "./IfStatement";
 import { parseWhileStatement } from "./WhileStatement";
 import { parseLoopStatement } from "./LoopStatement";
-import { parseForStatement } from "./ForStatement";
+import { parseForEachStatement, parseForStatement } from "./ForStatement";
 import { parseBreakStatement } from "./BreakStatement";
 import { parseContinueStatement } from "./ContinueStatement";
 import { parseReturnStatement } from "./ReturnStatement";
@@ -148,12 +148,7 @@ function parseKeywordStatement(iterator: ParserIterator, opts: Required<ParseSta
             return parseForStatement(iterator, opts);
 
         case KeywordType.ForEach:
-            // This is now handled by parseForStatement
-            throw new ParserError(
-                ParserErrorType.UnexpectedToken,
-                '"for each" should be handled by the for statement parser',
-                token
-            );
+            return parseForEachStatement(iterator, opts);
 
         // Control flow directives
         case KeywordType.Break:

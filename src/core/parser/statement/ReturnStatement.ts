@@ -12,7 +12,7 @@ import { parseExpression } from "../expression/ParseExpression";
  */
 export function parseReturnStatement(iterator: ParserIterator): ReturnStatementNode {
     // Validate context - return can only be used in functions
-    if (!iterator.getContext().has(ParserContextType.Function)) {
+    if (!iterator.getContext().has(ParserContextType.Function) && !iterator.getContext().has(ParserContextType.MacroBody)) {
         throw new ParserError(
             ParserErrorType.InvalidContext,
             "return can only be used in functions",

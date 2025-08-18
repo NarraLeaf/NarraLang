@@ -66,13 +66,13 @@ export class ParserContextStack {
         return null;
     }
 
-    public context(ctx: ParserContext, fn: () => void): this {
+    public context<T>(ctx: ParserContext, fn: () => T): T {
         this.push(ctx);
-        fn();
+        const result = fn();
 
         this.dispose(ctx);
 
-        return this;
+        return result;
     }
 
     public has(type: ParserContextType): boolean {
