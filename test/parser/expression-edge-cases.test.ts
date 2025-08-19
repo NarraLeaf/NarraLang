@@ -227,11 +227,11 @@ describe('Expression Edge Cases and Error Handling', () => {
 
         test('should handle deeply nested mixed structures', () => {
             const complex = `{
-                // func: (a, b) => {
-                //     return [a, b].map(x => ({value: x * 2}))
-                // },
-                 data: [[1, 2], [3, 4]].flat(),
-                //condition: a > b ? {x: 1} : {y: 2}
+                func: (a, b) => {
+                    return [a, b].map(x => ({value: x * 2}))
+                },
+                data: [[1, 2], [3, 4]].flat(),
+                condition: a > b ? {x: 1} : {y: 2}
             }`;
             const node = parseExpressionFromString(complex);
             expectNodeType(node, NodeType.ObjectExpression);

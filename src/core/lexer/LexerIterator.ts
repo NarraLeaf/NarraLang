@@ -130,7 +130,7 @@ export function createLexerIterator(raw: string): LexerIterator {
             }
             i++;
         }
-        return null; // not found
+        return raw.slice(start);
     };
 
     const next = (n: number = 1) => {

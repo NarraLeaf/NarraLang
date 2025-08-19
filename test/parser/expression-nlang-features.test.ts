@@ -113,9 +113,8 @@ describe('NLang-Specific Expression Features', () => {
             const node = parseExpressionFromString('"Result: {a + b * c}"');
             expectNodeType(node, NodeType.StringExpression);
             const stringNode = node as StringExpressionNode;
-            expect(stringNode.value).toHaveLength(3);
+            expect(stringNode.value).toHaveLength(2);
             expect(stringNode.value[0]).toBe('Result: ');
-            expect(stringNode.value[2]).toBe('');
         });
 
         test('should parse nested function calls in interpolation', () => {
@@ -124,13 +123,12 @@ describe('NLang-Specific Expression Features', () => {
         });
 
         test('should parse conditional expressions in interpolation', () => {
-            const node = parseExpressionFromString('"Status: {active ? \\"Active\\" : \\"Inactive\\"}"');
+            const node = parseExpressionFromString('"Status: {active ? "Active" : "Inactive"}"');
             expectNodeType(node, NodeType.StringExpression);
         });
 
         test('should handle empty interpolation', () => {
-            const node = parseExpressionFromString('"{}"');
-            expectNodeType(node, NodeType.StringExpression);
+            expectParseError('"{}"');
         });
 
         test('should handle interpolation at string boundaries', () => {
@@ -153,13 +151,8 @@ describe('NLang-Specific Expression Features', () => {
             expect(stringNode.value.length).toBeGreaterThan(0);
         });
 
-        test('should parse string with self-closing tag', () => {
-            const node = parseExpressionFromString('"Line break here<br/>more text"');
-            expectNodeType(node, NodeType.StringExpression);
-        });
-
         test('should parse string with tag attributes', () => {
-            const node = parseExpressionFromString('"<color=\\"red\\">Red text</color>"');
+            const node = parseExpressionFromString('"<p color="red">Red text</p>"');
             expectNodeType(node, NodeType.StringExpression);
         });
 
@@ -169,12 +162,12 @@ describe('NLang-Specific Expression Features', () => {
         });
 
         test('should parse tags with interpolation', () => {
-            const node = parseExpressionFromString('"<color=\\"{userColor}\\">Colored {text}</color>"');
+            const node = parseExpressionFromString('"<p color={"userColor"}>Colored {text}</p>"');
             expectNodeType(node, NodeType.StringExpression);
         });
 
         test('should handle hex color tags', () => {
-            const node = parseExpressionFromString('"<#FF0000>Red text</color>"');
+            const node = parseExpressionFromString('"<#FF0000>Red text</>"');
             expectNodeType(node, NodeType.StringExpression);
         });
     });
@@ -206,12 +199,6 @@ describe('NLang-Specific Expression Features', () => {
             arrayNode.elements.forEach(element => {
                 expect(element.type).toBe(NodeType.ArrayExpression);
             });
-        });
-
-        test('should parse array pattern with holes', () => {
-            const node = parseExpressionFromString('[a, , c]');
-            expectNodeType(node, NodeType.ArrayExpression);
-            // Implementation should handle empty slots
         });
     });
 

@@ -166,7 +166,7 @@ function parseUnaryLambdaExpression(
 
 function maybeLambdaExpression(
     iterator: ParserIterator,
-    options: ParseExpressionOptions,
+    _options: ParseExpressionOptions,
 ): boolean {
     const current = iterator.getCurrentToken();
     const next = iterator.peekToken();

@@ -47,6 +47,8 @@ export function parseStatementBlock(iterator: ParserIterator, opts: Required<Par
     
     // Parse statements until closing brace
     while (!iterator.isDone()) {
+        iterator.skipNewLine();
+        
         const currentToken = iterator.getCurrentToken();
         if (!currentToken) break;
         

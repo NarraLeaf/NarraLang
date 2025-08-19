@@ -3,7 +3,7 @@ import { TokensTypeOf, TokenType } from "@/core/lexer/TokenType";
 import { ExpressionNode, NodeType } from "../Node";
 import { ParserError, ParserErrorType } from "../ParserError";
 import { createParserIterator, ParserIterator } from "../ParserIterator";
-import { IdentifierNode, ObjectExpressionNode, StringExpressionNode, TupleExpressionNode } from "./Expression";
+import { IdentifierNode, ObjectExpressionNode, StringExpressionNode, TupleExpressionNode, UnaryExpressionNode } from "./Expression";
 import { parsePrimary } from "./parsePrimary";
 import { ParseExpressionOptions, consumeOperator, createTrace, resetBP } from "./shared";
 import { parseRichString } from "./parseRichString";
@@ -13,9 +13,9 @@ import { parseExpression } from "./ParseExpression";
 export function parseObjectLiteral(
     iterator: ParserIterator,
     options: ParseExpressionOptions,
-): ExpressionNode {
+): ObjectExpressionNode {
     const lb = iterator.popToken()!; // consume '{'
-    const properties: ExpressionNode[] = [];
+    const properties: (TupleExpressionNode | UnaryExpressionNode)[] = [];
     const nextDepth = (options.depth ?? 0) + 1;
 
     if (consumeOperator(iterator, OperatorType.RightBrace)) {
@@ -40,6 +40,23 @@ export function parseObjectLiteral(
 
         if (look.type === TokenType.Operator && look.value === OperatorType.RightBrace) {
             break;
+        }
+
+        if (look.type === TokenType.Operator && look.value === OperatorType.Ellipsis) {
+            const spread = parsePrimary(iterator, resetBP({
+                ...options,
+                depth: nextDepth,
+                stopOn: [
+                    { type: TokenType.Operator, value: OperatorType.Comma },
+                    { type: TokenType.Operator, value: OperatorType.RightBrace },
+                ],
+            }));
+            if (!spread || spread.type !== NodeType.UnaryExpression) {
+                const w = iterator.getCurrentToken();
+                throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after '...' in object", w ?? look);
+            }
+            properties.push(spread as UnaryExpressionNode);
+            continue;
         }
 
         // key: expr
@@ -78,12 +95,22 @@ export function parseObjectLiteral(
             throw new ParserError(ParserErrorType.UnexpectedToken, "Expected identifier or string as object literal key", keyTok ?? null);
         }
 
-        // Required ':' for object literal, or ',' for shorthand
-        const colonOrComma = iterator.popToken([TokenType.NewLine]);
-        if (colonOrComma && colonOrComma.type === TokenType.Operator && colonOrComma.value === OperatorType.Comma) {
+        iterator.skipNewLine();
+
+        // Required ':' for object literal, or ',' or '}' for shorthand
+        const colonOrComma = iterator.getCurrentToken();
+        if (colonOrComma && colonOrComma.type === TokenType.Operator && (
+            colonOrComma.value === OperatorType.Comma ||
+            colonOrComma.value === OperatorType.RightBrace
+        )) {
             if (keyNode.type !== NodeType.Identifier) {
                 throw new ParserError(ParserErrorType.UnexpectedToken, "Expected identifier as object literal key", colonOrComma);
             }
+
+            if (colonOrComma.value === OperatorType.Comma) {
+                iterator.popToken(); // consume ','
+            }
+
             const pair: TupleExpressionNode = {
                 type: NodeType.TupleExpression,
                 trace: { start: keyNode.trace.start, end: keyNode.trace.end },
@@ -94,6 +121,8 @@ export function parseObjectLiteral(
         } else if (!colonOrComma || colonOrComma.type !== TokenType.Operator || colonOrComma.value !== OperatorType.Colon) {
             throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ':' or ',' after object literal key", colonOrComma ?? null);
         }
+
+        iterator.popToken(); // consume ':'
 
         const valueExpr = parseExpression(iterator, resetBP({ ...options, depth: nextDepth }));
         if (!valueExpr) {
@@ -139,7 +168,7 @@ export function parseObjectPattern(
     options: ParseExpressionOptions,
 ): ExpressionNode {
     const lb = iterator.popToken()!; // consume '{'
-    const properties: ExpressionNode[] = [];
+    const properties: (TupleExpressionNode | UnaryExpressionNode)[] = [];
     const nextDepth = (options.depth ?? 0) + 1;
 
     if (consumeOperator(iterator, OperatorType.RightBrace)) {
@@ -159,12 +188,20 @@ export function parseObjectPattern(
 
         // Spread property: ...rest
         if (look.type === TokenType.Operator && look.value === OperatorType.Ellipsis) {
-            const spread = parsePrimary(iterator, { ...options, depth: nextDepth, identifier: true });
-            if (!spread) {
+            const spread = parsePrimary(iterator, resetBP({
+                ...options,
+                depth: nextDepth,
+                identifier: true,
+                stopOn: [
+                    { type: TokenType.Operator, value: OperatorType.Comma },
+                    { type: TokenType.Operator, value: OperatorType.RightBrace },
+                ],
+            }));
+            if (!spread || spread.type !== NodeType.UnaryExpression) {
                 const w = iterator.getCurrentToken();
                 throw new ParserError(ParserErrorType.ExpectedExpression, "Expected pattern after '...' in object", w ?? look);
             }
-            properties.push(spread);
+            properties.push(spread as UnaryExpressionNode);
         } else {
             // key [: valuePattern]
             let keyNode: IdentifierNode | StringExpressionNode | null = null;

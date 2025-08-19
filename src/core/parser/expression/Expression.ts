@@ -13,6 +13,7 @@ interface MemberExpressionNode extends ExpressionNode {
     type: NodeType.MemberExpression;
     target: ExpressionNode;
     property: ExpressionNode;
+    computed: boolean; // true for obj[key], false/undefined for obj.key
 }
 
 interface BinaryExpressionNode extends ExpressionNode {
@@ -51,7 +52,7 @@ interface ArrayExpressionNode extends ExpressionNode {
 
 interface ObjectExpressionNode extends ExpressionNode {
     type: NodeType.ObjectExpression;
-    properties: ExpressionNode[];
+    properties: (TupleExpressionNode | UnaryExpressionNode)[];
 }
 
 interface TupleExpressionNode extends ExpressionNode {

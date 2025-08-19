@@ -120,6 +120,16 @@ describe('Expression Precedence and Associativity', () => {
             expect(binNode.operator).toBe(OperatorType.Nullish);
             expect(binNode.left.type).toBe(NodeType.BinaryExpression);
         });
+
+        test('nullish coalescing precedence with parentheses', () => {
+            const node = parseExpressionFromString('(a and b) ?? c');
+            expectNodeType(node, NodeType.BinaryExpression);
+            const binNode = node as BinaryExpressionNode;
+            
+            // Should parse as: (a and b) ?? c
+            expect(binNode.operator).toBe(OperatorType.Nullish);
+            expect(binNode.left.type).toBe(NodeType.BinaryExpression);
+        });
     });
 
     describe('Mixed Precedence Scenarios', () => {

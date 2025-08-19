@@ -67,15 +67,11 @@ export function parseStatement(iterator: ParserIterator, options?: ParseStatemen
         );
     }
 
+    iterator.skipNewLine();
+
     const currentToken = iterator.getCurrentToken();
     if (!currentToken) {
         return null;
-    }
-
-    // Skip newlines and comments
-    if (currentToken.type === TokenType.NewLine) {
-        iterator.popToken();
-        return parseStatement(iterator, { ...opts, depth: opts.depth + 1 });
     }
 
     // Handle keyword-based statements

@@ -222,7 +222,7 @@ function tryParseTag(iterator: LexerIterator): StringToken | LexerError {
 
             return {
                 type: StringTokenType.CloseTag,
-                value: tagType.type === StringTagType.NamedColor ? tagType.value : tagName,
+                value: tagType.type === StringTagType.NamedColor ? tagType.value : tagType.type,
             };
         }
 

@@ -52,7 +52,7 @@ export function parseRichString(tokens: StringToken[]): ParsedString {
             );
 
             if (nextCloseTag === -1) {
-                throw new ParserError(ParserErrorType.UnexpectedToken, "Unexpected end of string");
+                throw new ParserError(ParserErrorType.UnexpectedToken, "Unexpected end of string (tag not closed)");
             }
 
             i = nextCloseTag; // will be incremented by for loop

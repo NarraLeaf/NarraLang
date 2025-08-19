@@ -3,9 +3,10 @@ import { ParserError, ParserErrorType } from "../ParserError";
 import { ParserIterator } from "../ParserIterator";
 import { TokensTypeOf, TokenType } from "@/core/lexer/TokenType";
 import { OperatorType } from "@/core/lexer/Operator";
-import { ParseExpressionOptions, matchesStopOn, createTrace } from "./shared";
+import { ParseExpressionOptions, matchesStopOn, createTrace, resetBP } from "./shared";
 import { parseArgumentList } from "./parseArguments";
 import { CallExpressionNode, IdentifierNode, MemberExpressionNode } from "./Expression";
+import { parseExpression } from "./ParseExpression";
 
 // Parse: postfix chain - member access and function call
 export function parsePostfix(
@@ -13,6 +14,8 @@ export function parsePostfix(
     left: ExpressionNode, 
     options: ParseExpressionOptions,
 ): ExpressionNode {
+    let parsed: MemberExpressionNode | CallExpressionNode | null = null;
+
     while (true) {
         const t = iterator.getCurrentToken();
         if (!t) break;
@@ -32,12 +35,43 @@ export function parsePostfix(
                 name: propTok.value,
             };
 
-            left = {
+            parsed = {
                 type: NodeType.MemberExpression,
                 trace: { start: left.trace.start, end: propTok.end },
                 target: left,
                 property,
-            } as MemberExpressionNode;
+                computed: false,
+            } satisfies MemberExpressionNode;
+            continue;
+        }
+
+        // Computed member access: [expression]
+        if (t.type === TokenType.Operator && t.value === OperatorType.LeftBracket) {
+            const lb = iterator.popToken()!;
+            const property = parseExpression(iterator, resetBP({
+                ...options,
+                stopOn: [
+                    { type: TokenType.Operator, value: OperatorType.RightBracket },
+                ],
+                depth: (options.depth ?? 0) + 1,
+            }));
+            if (!property) {
+                throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression in computed member access", iterator.getCurrentToken() ?? lb);
+            }
+            
+            const rb = iterator.getCurrentToken();
+            if (!rb || rb.type !== TokenType.Operator || rb.value !== OperatorType.RightBracket) {
+                throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ']' after computed member access", rb ?? null);
+            }
+            const rbTok = iterator.popToken()!;
+
+            parsed = {
+                type: NodeType.MemberExpression,
+                trace: { start: left.trace.start, end: rbTok.end },
+                target: left,
+                property,
+                computed: true,
+            } satisfies MemberExpressionNode;
             continue;
         }
 
@@ -47,17 +81,17 @@ export function parsePostfix(
             const { args, last } = parseArgumentList(iterator, { ...options });
             const endTok = last ?? lp;
             
-            left = {
+            parsed = {
                 type: NodeType.CallExpression,
                 trace: createTrace(lp, endTok),
                 callee: left,
                 args,
-            } as CallExpressionNode;
+            } satisfies CallExpressionNode;
             continue;
         }
 
         break;
     }
 
-    return left;
+    return parsed ?? left;
 }

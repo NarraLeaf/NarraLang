@@ -1,26 +1,4 @@
-import { KeywordType } from "@/core/lexer/Keyword";
 import { OperatorType } from "@/core/lexer/Operator";
-
-
-export enum BinaryOperator_ {
-    And,
-    Or,
-    LogicEqual,              // =
-    LogicNotEqual,           // !=
-    LogicGreaterThan,        // >
-    LogicGreaterThanOrEqual, // >=
-    LogicLessThan,           // <
-    LogicLessThanOrEqual,    // <=
-    Add,                     // +
-    Subtract,                // -
-    Multiply,                // *
-    Divide,                  // /
-    Modulo,                  // %
-    Power,                   // **
-    Nullish,                 // ??
-    In,                      // in
-
-}
 
 export type BinaryOperator = (
     OperatorType.Plus |
@@ -48,7 +26,9 @@ export type BinaryOperator = (
     OperatorType.IsGreaterThanOrEqual |
     OperatorType.IsLessThan |
     OperatorType.IsLessThanOrEqual |
-    OperatorType.IsIn
+    OperatorType.IsIn |
+
+    OperatorType.Nullish
 );
 
 export const BinaryOperators: BinaryOperator[] = [
@@ -78,6 +58,8 @@ export const BinaryOperators: BinaryOperator[] = [
     OperatorType.IsLessThan,
     OperatorType.IsLessThanOrEqual,
     OperatorType.IsIn,
+
+    OperatorType.Nullish,
 ];
 
 export function isBinaryOperator(op: OperatorType): boolean {

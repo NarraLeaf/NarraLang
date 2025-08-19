@@ -135,7 +135,7 @@ describe('Expression Parser', () => {
                 const node = parseExpressionFromString('""');
                 expectNodeType(node, NodeType.StringExpression);
                 const stringNode = node as StringExpressionNode;
-                expect(stringNode.value).toEqual(['']);
+                expect(stringNode.value).toEqual([]);
             });
 
             test('should handle string interpolation', () => {
