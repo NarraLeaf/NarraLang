@@ -58,11 +58,12 @@ export function isLambdaExpression(iterator: ParserIterator): boolean {
 export function parseLambdaExpression(
     iterator: ParserIterator,
     options: ParseExpressionOptions,
+    multipleParams: boolean,
 ): FunctionExpressionNode {
     const startToken = iterator.getCurrentToken()!; // The '(' token
 
     // Parse parameters using shared logic
-    const { params, rest } = parseFunctionParams(iterator);
+    const { params, rest } = multipleParams ? parseFunctionParams(iterator) : parseSingleParam(iterator);
 
     // Consume the '=>'
     const arrowToken = iterator.popToken();
@@ -107,5 +108,29 @@ export function parseLambdaExpression(
         rest,
         name: null,
         body,
+    };
+}
+
+function parseSingleParam(iterator: ParserIterator): ReturnType<typeof parseFunctionParams> {
+    const current = iterator.popToken();
+    if (!current) {
+        throw new ParserError(
+            ParserErrorType.UnexpectedToken,
+            "Unexpected end of file in lambda expression",
+            null
+        );
+    }
+
+    if (current.type !== TokenType.Identifier) {
+        throw new ParserError(
+            ParserErrorType.UnexpectedToken,
+            "Expected identifier in lambda expression",
+            current
+        );
+    }
+
+    return {
+        params: [{ name: current.value, defaultValue: null }],
+        rest: null,
     };
 }

@@ -29,6 +29,8 @@ export function parseArrayLiteral(
 
     let exit = false;
     while (!exit) {
+        iterator.skipNewLine();
+        
         const look = iterator.getCurrentToken();
         if (!look) {
             throw new ParserError(ParserErrorType.UnexpectedToken, "Unclosed array literal", look);
@@ -41,6 +43,8 @@ export function parseArrayLiteral(
             throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression inside array", w ?? lb);
         }
         elements.push(elem);
+
+        iterator.skipNewLine();
 
         const sep = iterator.getCurrentToken();
         if (sep && sep.type === TokenType.Operator && sep.value === OperatorType.Comma) {

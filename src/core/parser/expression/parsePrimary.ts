@@ -53,8 +53,12 @@ export function parsePrimary(
         throw new ParserError(ParserErrorType.ExpectedIdentifier, "Expected pattern (identifier/tuple/array/object)", t);
     }
 
+    if (maybeLambdaExpression(iterator, options)) {
+        return parseUnaryLambdaExpression(iterator, options);
+    }
+
     // Grouping: ( ... ) or lambda: (params) => expr or call start (handled as postfix later)
-    if (t.type === TokenType.Operator && t.value === OperatorType.LeftParenthesis) {
+    if ((t.type === TokenType.Operator && t.value === OperatorType.LeftParenthesis) || maybeLambdaExpression(iterator, options)) {
         return parsePossibleLambda(iterator, resetBP(options));
     }
 
@@ -138,7 +142,7 @@ function parsePossibleLambda(
 
     // Try to parse as lambda first by checking for '=>' after closing parenthesis
     if (isLambdaExpression(iterator)) {
-        return parseLambdaExpression(iterator, options);
+        return parseLambdaExpression(iterator, options, true);
     }
 
     // If not a lambda, parse as tuple/grouping
@@ -151,4 +155,26 @@ function parsePossibleLambda(
         );
     }
     return result;
+}
+
+function parseUnaryLambdaExpression(
+    iterator: ParserIterator,
+    options: ParseExpressionOptions,
+): ExpressionNode {
+    return parseLambdaExpression(iterator, options, false);
+}
+
+function maybeLambdaExpression(
+    iterator: ParserIterator,
+    options: ParseExpressionOptions,
+): boolean {
+    const current = iterator.getCurrentToken();
+    const next = iterator.peekToken();
+
+    if (!current || !next) return false;
+
+    return (
+        (current.type === TokenType.Identifier) &&
+        (next.type === TokenType.Operator && next.value === OperatorType.Arrow)
+    );
 }

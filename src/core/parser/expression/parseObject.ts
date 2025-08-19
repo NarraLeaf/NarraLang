@@ -38,6 +38,10 @@ export function parseObjectLiteral(
             continue;
         }
 
+        if (look.type === TokenType.Operator && look.value === OperatorType.RightBrace) {
+            break;
+        }
+
         // key: expr
         let keyNode: IdentifierNode | StringExpressionNode | null = null;
         const keyTok = iterator.getCurrentToken();
@@ -74,17 +78,27 @@ export function parseObjectLiteral(
             throw new ParserError(ParserErrorType.UnexpectedToken, "Expected identifier or string as object literal key", keyTok ?? null);
         }
 
-        // Required ':' for object literal
-        const maybeColon = iterator.getCurrentToken();
-        if (!maybeColon || maybeColon.type !== TokenType.Operator || maybeColon.value !== OperatorType.Colon) {
-            throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ':' after object literal key", maybeColon ?? null);
+        // Required ':' for object literal, or ',' for shorthand
+        const colonOrComma = iterator.popToken([TokenType.NewLine]);
+        if (colonOrComma && colonOrComma.type === TokenType.Operator && colonOrComma.value === OperatorType.Comma) {
+            if (keyNode.type !== NodeType.Identifier) {
+                throw new ParserError(ParserErrorType.UnexpectedToken, "Expected identifier as object literal key", colonOrComma);
+            }
+            const pair: TupleExpressionNode = {
+                type: NodeType.TupleExpression,
+                trace: { start: keyNode.trace.start, end: keyNode.trace.end },
+                elements: [keyNode, keyNode],
+            };
+            properties.push(pair);
+            continue;
+        } else if (!colonOrComma || colonOrComma.type !== TokenType.Operator || colonOrComma.value !== OperatorType.Colon) {
+            throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ':' or ',' after object literal key", colonOrComma ?? null);
         }
-        iterator.popToken();
 
         const valueExpr = parseExpression(iterator, resetBP({ ...options, depth: nextDepth }));
         if (!valueExpr) {
             const w = iterator.getCurrentToken();
-            throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after ':' in object literal", w ?? maybeColon);
+            throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after ':' in object literal", w ?? colonOrComma);
         }
 
         // Store as a 2-tuple [key, value]
