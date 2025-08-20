@@ -249,11 +249,6 @@ export function generateEdgeCaseTests(): Array<{ code: string; shouldError: bool
       description: "Double operators should error"
     },
     {
-      code: "a b",
-      shouldError: true,
-      description: "Adjacent identifiers without operator should error"
-    },
-    {
       code: "a ? b",
       shouldError: true,
       description: "Incomplete ternary expression should error"

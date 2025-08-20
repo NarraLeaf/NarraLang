@@ -61,6 +61,8 @@ export function parseDialogue(iterator: LexerIterator, parseTokenFn: ParseTokenF
             if (LexerError.isLexerError(string)) {
                 return string;
             }
+            
+            iterator.next(); // skip EOS
 
             content.push(string);
         }
@@ -76,13 +78,21 @@ export function parseDialogue(iterator: LexerIterator, parseTokenFn: ParseTokenF
         };
     }
 
-    const string = parseStringTokens(iterator, { EOS: ["\n", "\r"] }, parseTokenFn);
+    if (iterator.getCurrentChar() === "\"") {
+        iterator.next(); // skip "
+    } else {
+        return new LexerError(LexerErrorType.UnexpectedToken, "Unexpected token when parsing dialogue.", iterator.getIndex());
+    }
+
+    const string = parseStringTokens(iterator, { EOS: ["\n", "\r", "\""] }, parseTokenFn);
     if (!string) {
         return new LexerError(LexerErrorType.StringParsingError, "Failed to parse string for dialogue.", iterator.getIndex());
     }
     if (LexerError.isLexerError(string)) {
         return string;
     }
+
+    iterator.next(); // skip EOS
 
     return {
         type: TokenType.Dialogue,
@@ -169,15 +179,15 @@ export function isDialogue(iterator: LexerIterator): boolean {
     while (j < text.length && WhiteSpace.includes(text[j])) j++;
     const afterColon = text[j];
 
-    if (afterColon === '"') {
+    if (afterColon === "\"") {
         // OK: single line dialogue
-    } else if (afterColon === '{') {
+    } else if (afterColon === "{") {
         let k = j + 1;
         while (k < text.length && WhiteSpace.includes(text[k])) k++;
         if (!isNewLineAtIndex(iterator, k)) return false; // { must be followed by a new line
         k++;
         while (k < text.length && WhiteSpace.includes(text[k])) k++;
-        if (text[k] !== '"') return false; // multi-line dialogue must start with a double quote
+        if (text[k] !== "\"") return false; // multi-line dialogue must start with a double quote
     } else {
         return false; // not a valid dialogue start
     }

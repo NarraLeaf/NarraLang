@@ -1,12 +1,12 @@
+import { OperatorType } from "@/core/lexer/Operator";
+import { TokensTypeOf, TokenType } from "@/core/lexer/TokenType";
 import { ExpressionNode, NodeType } from "../Node";
 import { ParserError, ParserErrorType } from "../ParserError";
 import { ParserIterator } from "../ParserIterator";
-import { TokensTypeOf, TokenType } from "@/core/lexer/TokenType";
-import { OperatorType } from "@/core/lexer/Operator";
-import { ParseExpressionOptions, matchesStopOn, createTrace, resetBP } from "./shared";
-import { parseArgumentList } from "./parseArguments";
 import { CallExpressionNode, IdentifierNode, MemberExpressionNode } from "./Expression";
+import { parseArgumentList } from "./parseArguments";
 import { parseExpression } from "./ParseExpression";
+import { createTrace, matchesStopOn, ParseExpressionOptions, resetBP } from "./shared";
 
 // Parse: postfix chain - member access and function call
 export function parsePostfix(
@@ -14,7 +14,7 @@ export function parsePostfix(
     left: ExpressionNode, 
     options: ParseExpressionOptions,
 ): ExpressionNode {
-    let parsed: MemberExpressionNode | CallExpressionNode | null = null;
+    let parsed: ExpressionNode | null = left;
 
     while (true) {
         const t = iterator.getCurrentToken();
@@ -35,13 +35,14 @@ export function parsePostfix(
                 name: propTok.value,
             };
 
-            parsed = {
+            const newNode: MemberExpressionNode = {
                 type: NodeType.MemberExpression,
-                trace: { start: left.trace.start, end: propTok.end },
-                target: left,
+                trace: createTrace(dot, propTok),
+                target: parsed,
                 property,
                 computed: false,
-            } satisfies MemberExpressionNode;
+            };
+            parsed = newNode;
             continue;
         }
 
@@ -65,13 +66,14 @@ export function parsePostfix(
             }
             const rbTok = iterator.popToken()!;
 
-            parsed = {
+            const newNode: MemberExpressionNode = {
                 type: NodeType.MemberExpression,
-                trace: { start: left.trace.start, end: rbTok.end },
-                target: left,
+                trace: createTrace(lb, rbTok),
+                target: parsed,
                 property,
                 computed: true,
-            } satisfies MemberExpressionNode;
+            };
+            parsed = newNode;
             continue;
         }
 
@@ -81,12 +83,13 @@ export function parsePostfix(
             const { args, last } = parseArgumentList(iterator, { ...options });
             const endTok = last ?? lp;
             
-            parsed = {
+            const newNode: CallExpressionNode = {
                 type: NodeType.CallExpression,
                 trace: createTrace(lp, endTok),
-                callee: left,
+                callee: parsed,
                 args,
-            } satisfies CallExpressionNode;
+            };
+            parsed = newNode;
             continue;
         }
 

@@ -28,7 +28,7 @@ export type ParserIterator = {
 };
 
 export function createParserIterator(tokens: Tokens[]): ParserIterator {
-    const cache = [...tokens];
+    const cache: Readonly<Tokens[]> = [...tokens];
     const ctx = new ParserContextStack();
     const result: ParserIteratorResult[] = [];
 

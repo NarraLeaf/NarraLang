@@ -101,6 +101,8 @@ export function parseToken(iterator: LexerIterator, opt?: ParseTokenFnOptions): 
 
         const stringToken = parseStringTokens(iterator, { EOS: [quotationMark] }, parser);
         if (stringToken) {
+            iterator.next(); // Skip the EOS.
+            
             if (LexerError.isLexerError(stringToken)) {
                 return stringToken;
             }

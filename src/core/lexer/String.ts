@@ -103,7 +103,6 @@ export function parseStringTokens(
     while (!iterator.isDone()) {
         const currentChar = iterator.getCurrentChar();
         if (EOS.includes(currentChar)) {
-            iterator.next(); // skip EOL
             pushCache();
             return tokens;
         }
