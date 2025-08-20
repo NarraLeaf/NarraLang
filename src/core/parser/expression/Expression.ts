@@ -52,7 +52,7 @@ interface ArrayExpressionNode extends ExpressionNode {
 
 interface ObjectExpressionNode extends ExpressionNode {
     type: NodeType.ObjectExpression;
-    properties: (TupleExpressionNode | UnaryExpressionNode)[];
+    properties: (TupleExpressionNode | RestExpressionNode)[];
 }
 
 interface TupleExpressionNode extends ExpressionNode {

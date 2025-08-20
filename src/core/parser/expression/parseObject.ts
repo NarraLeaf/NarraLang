@@ -3,143 +3,265 @@ import { TokensTypeOf, TokenType } from "@/core/lexer/TokenType";
 import { ExpressionNode, NodeType } from "../Node";
 import { ParserError, ParserErrorType } from "../ParserError";
 import { createParserIterator, ParserIterator } from "../ParserIterator";
-import { IdentifierNode, ObjectExpressionNode, StringExpressionNode, TupleExpressionNode, UnaryExpressionNode } from "./Expression";
+import { IdentifierNode, ObjectExpressionNode, RestExpressionNode, StringExpressionNode, TupleExpressionNode, UnaryExpressionNode } from "./Expression";
 import { parsePrimary } from "./parsePrimary";
 import { ParseExpressionOptions, consumeOperator, createTrace, resetBP } from "./shared";
 import { parseRichString } from "./parseRichString";
 import { parseExpression } from "./ParseExpression";
 
-// Parse object literal: { key: expr, key2: expr2 }
-export function parseObjectLiteral(
+// Common interface for object property parsing
+interface ParsedProperty {
+    type: 'spread' | 'pair';
+    node: TupleExpressionNode | RestExpressionNode;
+}
+
+// Parse object key (identifier, string, computed property, or dialogue)
+function parseObjectKey(
     iterator: ParserIterator,
     options: ParseExpressionOptions,
+    allowComputedKeys: boolean = true
+): IdentifierNode | StringExpressionNode | ExpressionNode {
+    const keyTok = iterator.getCurrentToken();
+    if (!keyTok) {
+        throw new ParserError(ParserErrorType.UnexpectedToken, "Expected object key", null);
+    }
+
+    // Computed property: [expression]
+    if (allowComputedKeys && keyTok.type === TokenType.Operator && keyTok.value === OperatorType.LeftBracket) {
+        const lb = iterator.popToken()!; // consume '['
+        const computedKey = parseExpression(iterator, resetBP({
+            ...options,
+            depth: (options.depth ?? 0) + 1,
+            stopOn: [
+                { type: TokenType.Operator, value: OperatorType.RightBracket },
+            ],
+        }));
+        
+        if (!computedKey) {
+            throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression in computed property", iterator.getCurrentToken() ?? lb);
+        }
+
+        const rb = iterator.getCurrentToken();
+        if (!rb || rb.type !== TokenType.Operator || rb.value !== OperatorType.RightBracket) {
+            throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ']' after computed property", rb ?? null);
+        }
+        iterator.popToken(); // consume ']'
+        
+        return computedKey;
+    }
+
+    // Identifier key
+    if (keyTok.type === TokenType.Identifier) {
+        const tok = iterator.popToken()! as TokensTypeOf<TokenType.Identifier>;
+        return {
+            type: NodeType.Identifier,
+            trace: { start: tok.start, end: tok.end },
+            name: tok.value,
+        };
+    }
+
+    // String key
+    if (keyTok.type === TokenType.String) {
+        const tok = iterator.popToken()! as TokensTypeOf<TokenType.String>;
+        const parsed = parseRichString(tok.value);
+        return {
+            type: NodeType.StringExpression,
+            trace: { start: tok.start, end: tok.end },
+            value: parsed,
+        };
+    }
+
+    // Dialogue key (character expression)
+    if (keyTok.type === TokenType.Dialogue) {
+        const tok = iterator.popToken()! as TokensTypeOf<TokenType.Dialogue>;
+        const nameIterator = createParserIterator(tok.value.character);
+        const name = parseExpression(nameIterator, resetBP({ ...options, depth: (options.depth ?? 0) + 1 }));
+        if (!name) {
+            throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after dialogue in object literal", tok);
+        }
+
+        const stringValue = parseRichString(tok.value.content);
+        return {
+            type: NodeType.StringExpression,
+            trace: { start: tok.start, end: tok.end },
+            value: stringValue,
+        };
+    }
+
+    throw new ParserError(ParserErrorType.UnexpectedToken, "Expected identifier, string, or computed property as object key", keyTok);
+}
+
+// Parse spread property: ...expression
+function parseSpreadProperty(
+    iterator: ParserIterator,
+    options: ParseExpressionOptions,
+    isPattern: boolean = false
+): ParsedProperty {
+    const spread = parsePrimary(iterator, resetBP({
+        ...options,
+        depth: (options.depth ?? 0) + 1,
+        identifier: isPattern,
+        stopOn: [
+            { type: TokenType.Operator, value: OperatorType.Comma },
+            { type: TokenType.Operator, value: OperatorType.RightBrace },
+        ],
+    }));
+    
+    if (!spread || spread.type !== NodeType.RestExpression) {
+        const w = iterator.getCurrentToken();
+        throw new ParserError(ParserErrorType.ExpectedExpression, `Expected ${isPattern ? 'pattern' : 'expression'} after '...' in object`, w ?? null);
+    }
+    
+    return {
+        type: 'spread',
+        node: spread as RestExpressionNode
+    };
+}
+
+// Parse object property (key-value pair)
+function parseObjectProperty(
+    iterator: ParserIterator,
+    options: ParseExpressionOptions,
+    isPattern: boolean = false
+): ParsedProperty {
+    const keyNode = parseObjectKey(iterator, options, !isPattern);
+    
+    iterator.skipNewLine();
+
+    // Check for shorthand syntax or method definition
+    const afterKey = iterator.getCurrentToken();
+    
+    // Shorthand property: {key} -> {key: key} (only for identifiers in patterns or object literals)
+    if (afterKey && afterKey.type === TokenType.Operator && (
+        afterKey.value === OperatorType.Comma ||
+        afterKey.value === OperatorType.RightBrace
+    )) {
+        if (keyNode.type !== NodeType.Identifier) {
+            throw new ParserError(ParserErrorType.UnexpectedToken, "Shorthand syntax only supported for identifier keys", afterKey);
+        }
+
+        const pair: TupleExpressionNode = {
+            type: NodeType.TupleExpression,
+            trace: { start: keyNode.trace.start, end: keyNode.trace.end },
+            elements: [keyNode, keyNode],
+        };
+
+        return {
+            type: 'pair',
+            node: pair
+        };
+    }
+
+    // Method shorthand: key() { ... } (only in object literals, not patterns)
+    if (!isPattern && afterKey && afterKey.type === TokenType.Operator && afterKey.value === OperatorType.LeftParenthesis) {
+        if (keyNode.type !== NodeType.Identifier) {
+            throw new ParserError(ParserErrorType.UnexpectedToken, "Method syntax only supported for identifier keys", afterKey);
+        }
+
+        // Parse function expression starting from parameters
+        const functionExpr = parsePrimary(iterator, resetBP({
+            ...options,
+            depth: (options.depth ?? 0) + 1,
+            stopOn: [
+                { type: TokenType.Operator, value: OperatorType.RightParenthesis },
+            ],
+        }));
+
+        if (!functionExpr) {
+            throw new ParserError(ParserErrorType.ExpectedExpression, "Expected function expression for method", afterKey);
+        }
+
+        const pair: TupleExpressionNode = {
+            type: NodeType.TupleExpression,
+            trace: { start: keyNode.trace.start, end: functionExpr.trace.end },
+            elements: [keyNode, functionExpr],
+        };
+
+        return {
+            type: 'pair',
+            node: pair
+        };
+    }
+
+    // Regular property: key: value
+    if (!afterKey || afterKey.type !== TokenType.Operator || afterKey.value !== OperatorType.Colon) {
+        throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ':' after object key", afterKey ?? null);
+    }
+
+    iterator.popToken(); // consume ':'
+
+    const valueExpr = isPattern
+        ? parsePrimary(iterator, { ...options, depth: (options.depth ?? 0) + 1, identifier: true })
+        : parseExpression(iterator, resetBP({ ...options, depth: (options.depth ?? 0) + 1 }));
+
+    if (!valueExpr) {
+        const w = iterator.getCurrentToken();
+        throw new ParserError(ParserErrorType.ExpectedExpression, `Expected ${isPattern ? 'pattern' : 'expression'} after ':' in object`, w ?? afterKey);
+    }
+
+    const pair: TupleExpressionNode = {
+        type: NodeType.TupleExpression,
+        trace: { start: keyNode.trace.start, end: valueExpr.trace.end },
+        elements: [keyNode, valueExpr],
+    };
+
+    return {
+        type: 'pair',
+        node: pair
+    };
+}
+
+// Generic object parsing function
+function parseObjectGeneric(
+    iterator: ParserIterator,
+    options: ParseExpressionOptions,
+    isPattern: boolean = false
 ): ObjectExpressionNode {
     const lb = iterator.popToken()!; // consume '{'
-    const properties: (TupleExpressionNode | UnaryExpressionNode)[] = [];
+    const properties: (TupleExpressionNode | RestExpressionNode)[] = [];
     const nextDepth = (options.depth ?? 0) + 1;
 
+    // Empty object
     if (consumeOperator(iterator, OperatorType.RightBrace)) {
-        const node: ObjectExpressionNode = {
+        return {
             type: NodeType.ObjectExpression,
             trace: { start: lb.start, end: lb.end },
             properties,
         };
-        return node;
     }
 
     while (true) {
         const look = iterator.getCurrentToken();
         if (!look) {
-            throw new ParserError(ParserErrorType.UnexpectedToken, "Unclosed object literal", look);
+            throw new ParserError(ParserErrorType.UnexpectedToken, `Unclosed object ${isPattern ? 'pattern' : 'literal'}`, null);
         }
 
+        // Skip newlines
         if (look.type === TokenType.NewLine) {
             iterator.popToken();
             continue;
         }
 
+        // End of object
         if (look.type === TokenType.Operator && look.value === OperatorType.RightBrace) {
             break;
         }
 
+        let parsedProperty: ParsedProperty;
+
+        // Spread property: ...expression
         if (look.type === TokenType.Operator && look.value === OperatorType.Ellipsis) {
-            const spread = parsePrimary(iterator, resetBP({
-                ...options,
-                depth: nextDepth,
-                stopOn: [
-                    { type: TokenType.Operator, value: OperatorType.Comma },
-                    { type: TokenType.Operator, value: OperatorType.RightBrace },
-                ],
-            }));
-            if (!spread || spread.type !== NodeType.UnaryExpression) {
-                const w = iterator.getCurrentToken();
-                throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after '...' in object", w ?? look);
-            }
-            properties.push(spread as UnaryExpressionNode);
-            continue;
-        }
-
-        // key: expr
-        let keyNode: IdentifierNode | StringExpressionNode | null = null;
-        const keyTok = iterator.getCurrentToken();
-        if (keyTok && keyTok.type === TokenType.Identifier) {
-            const tok = iterator.popToken()! as TokensTypeOf<TokenType.Identifier>;
-            keyNode = {
-                type: NodeType.Identifier,
-                trace: { start: tok.start, end: tok.end },
-                name: tok.value,
-            };
-        } else if (keyTok && keyTok.type === TokenType.String) {
-            const tok = iterator.popToken()! as TokensTypeOf<TokenType.String>;
-            const parsed = parseRichString(tok.value);
-            keyNode = {
-                type: NodeType.StringExpression,
-                trace: { start: tok.start, end: tok.end },
-                value: parsed,
-            };
-        } else if (keyTok && keyTok.type === TokenType.Dialogue) {
-            const tok = iterator.popToken()! as TokensTypeOf<TokenType.Dialogue>;
-            const nameIterator = createParserIterator(tok.value.character);
-            const name = parseExpression(nameIterator, resetBP({ ...options, depth: nextDepth }));
-            if (!name) {
-                throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after dialogue in object literal", tok);
-            }
-
-            const stringValue = parseRichString(tok.value.content);
-            keyNode = {
-                type: NodeType.StringExpression,
-                trace: { start: tok.start, end: tok.end },
-                value: stringValue,
-            };
+            parsedProperty = parseSpreadProperty(iterator, { ...options, depth: nextDepth }, isPattern);
         } else {
-            throw new ParserError(ParserErrorType.UnexpectedToken, "Expected identifier or string as object literal key", keyTok ?? null);
+            // Regular property: key: value or shorthand
+            parsedProperty = parseObjectProperty(iterator, { ...options, depth: nextDepth }, isPattern);
         }
+
+        properties.push(parsedProperty.node);
 
         iterator.skipNewLine();
 
-        // Required ':' for object literal, or ',' or '}' for shorthand
-        const colonOrComma = iterator.getCurrentToken();
-        if (colonOrComma && colonOrComma.type === TokenType.Operator && (
-            colonOrComma.value === OperatorType.Comma ||
-            colonOrComma.value === OperatorType.RightBrace
-        )) {
-            if (keyNode.type !== NodeType.Identifier) {
-                throw new ParserError(ParserErrorType.UnexpectedToken, "Expected identifier as object literal key", colonOrComma);
-            }
-
-            if (colonOrComma.value === OperatorType.Comma) {
-                iterator.popToken(); // consume ','
-            }
-
-            const pair: TupleExpressionNode = {
-                type: NodeType.TupleExpression,
-                trace: { start: keyNode.trace.start, end: keyNode.trace.end },
-                elements: [keyNode, keyNode],
-            };
-            properties.push(pair);
-            continue;
-        } else if (!colonOrComma || colonOrComma.type !== TokenType.Operator || colonOrComma.value !== OperatorType.Colon) {
-            throw new ParserError(ParserErrorType.UnexpectedToken, "Expected ':' or ',' after object literal key", colonOrComma ?? null);
-        }
-
-        iterator.popToken(); // consume ':'
-
-        const valueExpr = parseExpression(iterator, resetBP({ ...options, depth: nextDepth }));
-        if (!valueExpr) {
-            const w = iterator.getCurrentToken();
-            throw new ParserError(ParserErrorType.ExpectedExpression, "Expected expression after ':' in object literal", w ?? colonOrComma);
-        }
-
-        // Store as a 2-tuple [key, value]
-        const pair: TupleExpressionNode = {
-            type: NodeType.TupleExpression,
-            trace: { start: keyNode.trace.start, end: valueExpr.trace.end },
-            elements: [keyNode, valueExpr],
-        };
-        properties.push(pair);
-
-        iterator.skipNewLine();
-
+        // Check for comma separator
         const sep = iterator.getCurrentToken();
         if (sep && sep.type === TokenType.Operator && sep.value === OperatorType.Comma) {
             iterator.popToken(); // consume ','
@@ -150,16 +272,23 @@ export function parseObjectLiteral(
 
     const rb = iterator.getCurrentToken();
     if (!rb || rb.type !== TokenType.Operator || rb.value !== OperatorType.RightBrace) {
-        throw new ParserError(ParserErrorType.UnexpectedToken, "Expected '}' to close object literal", rb ?? null);
+        throw new ParserError(ParserErrorType.UnexpectedToken, `Expected '}' to close object ${isPattern ? 'pattern' : 'literal'}`, rb ?? null);
     }
     iterator.popToken();
 
-    const node: ObjectExpressionNode = {
+    return {
         type: NodeType.ObjectExpression,
         trace: createTrace(lb, rb),
         properties,
     };
-    return node;
+}
+
+// Parse object literal: { key: expr, key2: expr2, ...spread, [computed]: value }
+export function parseObjectLiteral(
+    iterator: ParserIterator,
+    options: ParseExpressionOptions,
+): ObjectExpressionNode {
+    return parseObjectGeneric(iterator, options, false);
 }
 
 // Parse object pattern for identifier mode: { a, b: c, ...rest }
@@ -167,109 +296,5 @@ export function parseObjectPattern(
     iterator: ParserIterator,
     options: ParseExpressionOptions,
 ): ExpressionNode {
-    const lb = iterator.popToken()!; // consume '{'
-    const properties: (TupleExpressionNode | UnaryExpressionNode)[] = [];
-    const nextDepth = (options.depth ?? 0) + 1;
-
-    if (consumeOperator(iterator, OperatorType.RightBrace)) {
-        const node: ObjectExpressionNode = {
-            type: NodeType.ObjectExpression,
-            trace: { start: lb.start, end: lb.end },
-            properties,
-        };
-        return node;
-    }
-
-    while (true) {
-        const look = iterator.getCurrentToken();
-        if (!look) {
-            throw new ParserError(ParserErrorType.UnexpectedToken, "Unclosed object pattern", look);
-        }
-
-        // Spread property: ...rest
-        if (look.type === TokenType.Operator && look.value === OperatorType.Ellipsis) {
-            const spread = parsePrimary(iterator, resetBP({
-                ...options,
-                depth: nextDepth,
-                identifier: true,
-                stopOn: [
-                    { type: TokenType.Operator, value: OperatorType.Comma },
-                    { type: TokenType.Operator, value: OperatorType.RightBrace },
-                ],
-            }));
-            if (!spread || spread.type !== NodeType.UnaryExpression) {
-                const w = iterator.getCurrentToken();
-                throw new ParserError(ParserErrorType.ExpectedExpression, "Expected pattern after '...' in object", w ?? look);
-            }
-            properties.push(spread as UnaryExpressionNode);
-        } else {
-            // key [: valuePattern]
-            let keyNode: IdentifierNode | StringExpressionNode | null = null;
-            const keyTok = iterator.getCurrentToken();
-            if (keyTok && keyTok.type === TokenType.Identifier) {
-                const tok = iterator.popToken()! as TokensTypeOf<TokenType.Identifier>;
-                keyNode = {
-                    type: NodeType.Identifier,
-                    trace: { start: tok.start, end: tok.end },
-                    name: tok.value,
-                };
-            } else if (keyTok && keyTok.type === TokenType.String) {
-                const tok = iterator.popToken()! as TokensTypeOf<TokenType.String>;
-                const parsed = parseRichString(tok.value);
-                keyNode = {
-                    type: NodeType.StringExpression,
-                    trace: { start: tok.start, end: tok.end },
-                    value: parsed,
-                };
-            } else {
-                throw new ParserError(ParserErrorType.UnexpectedToken, "Expected identifier or string as object pattern key", keyTok ?? null);
-            }
-
-            // Optional ':' value pattern
-            const maybeColon = iterator.getCurrentToken();
-            if (maybeColon && maybeColon.type === TokenType.Operator && maybeColon.value === OperatorType.Colon) {
-                iterator.popToken();
-                const valuePattern = parsePrimary(iterator, { ...options, depth: nextDepth, identifier: true });
-                if (!valuePattern) {
-                    const w = iterator.getCurrentToken();
-                    throw new ParserError(ParserErrorType.ExpectedExpression, "Expected pattern after ':' in object", w ?? maybeColon);
-                }
-                // Store as a 2-tuple [key, value]
-                const pair: TupleExpressionNode = {
-                    type: NodeType.TupleExpression,
-                    trace: { start: keyNode.trace.start, end: valuePattern.trace.end },
-                    elements: [keyNode, valuePattern],
-                };
-                properties.push(pair);
-            } else {
-                // shorthand: {a} -> [Identifier(a), Identifier(a)]
-                const pair: TupleExpressionNode = {
-                    type: NodeType.TupleExpression,
-                    trace: { start: keyNode.trace.start, end: keyNode.trace.end },
-                    elements: [keyNode, keyNode],
-                };
-                properties.push(pair);
-            }
-        }
-
-        const sep = iterator.getCurrentToken();
-        if (sep && sep.type === TokenType.Operator && sep.value === OperatorType.Comma) {
-            iterator.popToken();
-            continue;
-        }
-        break;
-    }
-
-    const rb = iterator.getCurrentToken();
-    if (!rb || rb.type !== TokenType.Operator || rb.value !== OperatorType.RightBrace) {
-        throw new ParserError(ParserErrorType.UnexpectedToken, "Expected '}' to close object pattern", rb ?? null);
-    }
-    iterator.popToken();
-
-    const node: ObjectExpressionNode = {
-        type: NodeType.ObjectExpression,
-        trace: createTrace(lb, rb),
-        properties,
-    };
-    return node;
+    return parseObjectGeneric(iterator, options, true);
 }

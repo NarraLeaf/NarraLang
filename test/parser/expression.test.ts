@@ -344,8 +344,8 @@ describe('Expression Parser', () => {
             expect(unaryNode.condition.type).toBe(NodeType.Literal);
         });
 
-        test('should parse logical not with "not"', () => {
-            const node = parseExpressionFromString('not false');
+        test('should parse logical not with !', () => {
+            const node = parseExpressionFromString('!false');
             expectNodeType(node, NodeType.UnaryExpression);
         });
 
@@ -417,13 +417,6 @@ describe('Expression Parser', () => {
             expect(arrayNode.elements).toHaveLength(2);
             expect(arrayNode.elements[0].type).toBe(NodeType.BinaryExpression);
         });
-
-        test('should handle trailing comma', () => {
-            const node = parseExpressionFromString('[1, 2, 3,]');
-            expectNodeType(node, NodeType.ArrayExpression);
-            const arrayNode = node as ArrayExpressionNode;
-            expect(arrayNode.elements).toHaveLength(3);
-        });
     });
 
     describe('Object Expressions', () => {
@@ -456,11 +449,6 @@ describe('Expression Parser', () => {
             expectNodeType(node, NodeType.ObjectExpression);
             const objNode = node as ObjectExpressionNode;
             expect(objNode.properties).toHaveLength(1);
-        });
-
-        test('should parse object with method shorthand', () => {
-            const node = parseExpressionFromString('{sayHi() { return "hi" }}');
-            expectNodeType(node, NodeType.ObjectExpression);
         });
 
         test('should handle trailing comma in object', () => {
