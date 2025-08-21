@@ -1,3 +1,4 @@
+import { ParsedString } from "../expression/parseRichString";
 import { ExpressionNode, NodeType, StatementNode } from "../Node";
 
 export type VariableDeclaration = {
@@ -98,6 +99,11 @@ interface SugarCallStatementNode extends StatementNode {
     modifiers: Record<string, ExpressionNode>;
 }
 
+interface ExpressionStatementNode extends StatementNode {
+    type: NodeType.ExpressionStatement;
+    expression: ExpressionNode;
+}
+
 interface BlockStatementNode extends StatementNode {
     type: NodeType.BlockStatement;
     body: StatementNode[];
@@ -105,25 +111,13 @@ interface BlockStatementNode extends StatementNode {
 
 interface DialogueStatementNode extends StatementNode {
     type: NodeType.DialogueExpression;
-    character: string;
-    dialogue: string;
+    character: ExpressionNode;
+    dialogue: ParsedString | ParsedString[];
 }
 
 export {
-    VariableDeclarationNode,
-    LocalDeclarationNode,
-    FunctionDeclarationNode,
-    MacroDeclarationNode,
-    CleanupDeclarationNode,
-    AwaitStatementNode,
-    IfStatementNode,
-    WhileStatementNode,
-    LoopStatementNode,
-    ForEachStatementNode,
-    ForRangeStatementNode,
-    BreakStatementNode,
-    ContinueStatementNode,
-    ReturnStatementNode,
-    SugarCallStatementNode,
-    BlockStatementNode,
+    AwaitStatementNode, BlockStatementNode, BreakStatementNode, CleanupDeclarationNode, ContinueStatementNode, DialogueStatementNode, ExpressionStatementNode, ForEachStatementNode,
+    ForRangeStatementNode, FunctionDeclarationNode, IfStatementNode, LocalDeclarationNode, LoopStatementNode, MacroDeclarationNode, ReturnStatementNode,
+    SugarCallStatementNode, VariableDeclarationNode, WhileStatementNode
 };
+

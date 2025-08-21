@@ -62,7 +62,7 @@ interface TupleExpressionNode extends ExpressionNode {
 
 export type StringTag = {
     tag: RawStringTag;
-    properties: Record<string, string | number> | null;
+    properties: Record<string, string | number | boolean> | null;
     children: (string | StringTag | ExpressionNode)[];
 };
 interface StringExpressionNode extends ExpressionNode {

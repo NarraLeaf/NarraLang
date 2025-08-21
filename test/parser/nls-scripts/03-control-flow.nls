@@ -1,0 +1,383 @@
+// 03-control-flow.nls
+// Control flow test script covering if/else, loops, iteration, and flow control statements
+// 控制流测试脚本，涵盖if/else、循环、迭代和流程控制语句
+
+// ===== 条件分支测试 =====
+// Conditional branching tests
+
+// 基本 if 语句
+set age 25
+
+if age >= 18 {
+    set status "adult"
+}
+
+// if-else 语句
+set score 85
+
+if score >= 90 {
+    set grade "A"
+} else {
+    set grade "B or below"
+}
+
+// if-else if-else 语句
+set temperature 22
+
+if temperature > 30 {
+    set weather "hot"
+} else if temperature > 20 {
+    set weather "warm"
+} else if temperature > 10 {
+    set weather "cool"
+} else {
+    set weather "cold"
+}
+
+// 嵌套条件
+set userRole "admin"
+set isLoggedIn true
+
+if isLoggedIn {
+    if userRole is "admin" {
+        set permissions "full"
+    } else if userRole is "user" {
+        set permissions "limited"
+    } else {
+        set permissions "guest"
+    }
+} else {
+    set permissions "none"
+}
+
+// 复杂条件表达式
+set hour 14
+set isWeekend false
+
+if hour >= 9 and hour <= 17 and not isWeekend {
+    set workStatus "working hours"
+} else {
+    set workStatus "off hours"
+}
+
+// ===== 函数中的控制流测试 =====
+// Control flow in functions
+
+// while 循环（仅限函数）
+function countDown(start) {
+    var current start
+    var result []
+    
+    while current > 0 {
+        add current to result
+        sub 1 from current
+    }
+    
+    return result
+}
+
+set countDownResult countDown(5)
+
+// for each...in 循环
+function processItems(items) {
+    var processed []
+    
+    for each item in items {
+        var processedItem item * 2
+        add processedItem to processed
+    }
+    
+    return processed
+}
+
+set itemList [1, 2, 3, 4, 5]
+set processedItems processItems(itemList)
+
+// for...from...to 循环
+function generateSequence(start, end) {
+    var sequence []
+    
+    for i from start to end {
+        add i to sequence
+    }
+    
+    return sequence
+}
+
+set sequence generateSequence(1, 10)
+
+// 嵌套循环
+function multiplicationTable(size) {
+    var table []
+    
+    for i from 1 to size {
+        var row []
+        for j from 1 to size {
+            add i * j to row
+        }
+        add row to table
+    }
+    
+    return table
+}
+
+set multiTable multiplicationTable(3)
+
+// ===== 控制流语句测试 =====
+// Control flow statements
+
+// break 语句
+function findFirstEven(numbers) {
+    for each num in numbers {
+        if num % 2 = 0 {
+            return num
+        }
+    }
+    return null
+}
+
+set firstEven findFirstEven([1, 3, 5, 4, 7, 8])
+
+// continue 语句
+function getOddNumbers(numbers) {
+    var odds []
+    
+    for each num in numbers {
+        if num % 2 = 0 {
+            continue
+        }
+        add num to odds
+    }
+    
+    return odds
+}
+
+set oddNumbers getOddNumbers([1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+// 带标签的 break 和 continue
+function findPairSum(matrix, target) {
+    outer: for i from 0 to matrix.length() - 1 {
+        inner: for j from 0 to matrix[i].length() - 1 {
+            if matrix[i][j] + matrix[i][j + 1] = target {
+                return {row: i, col: j, value: matrix[i][j]}
+            }
+            if matrix[i][j] > target {
+                break inner
+            }
+        }
+    }
+    return null
+}
+
+set testMatrix [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+set pairResult findPairSum(testMatrix, 9)
+
+// return 语句的不同用法
+function complexReturn(condition) {
+    if condition is "early" {
+        return "early return"
+    }
+    
+    var processing "processing"
+    
+    if condition is "middle" {
+        return processing + " middle"
+    }
+    
+    return processing + " normal"
+}
+
+set returnResult1 complexReturn("early")
+set returnResult2 complexReturn("middle")
+set returnResult3 complexReturn("normal")
+
+// ===== 流程中的控制流测试 =====
+// Control flow in procedures
+
+// 流程中可以使用的控制流
+set procedureVar 0
+
+if procedureVar is 0 {
+    set procedureVar 1
+}
+
+// loop 语句（流程和函数都可以使用）
+loop 3 times {
+    add 1 to procedureVar
+}
+
+// 流程中的嵌套条件
+set gameState "playing"
+set playerHealth 100
+
+if gameState is "playing" {
+    if playerHealth > 50 {
+        set playerStatus "healthy"
+    } else if playerHealth > 20 {
+        set playerStatus "injured"
+    } else {
+        set playerStatus "critical"
+    }
+} else {
+    set playerStatus "game over"
+}
+
+// ===== 复杂控制流场景 =====
+// Complex control flow scenarios
+
+// 状态机模拟
+function stateMachine(currentState, input) {
+    if currentState is "idle" {
+        if input is "start" {
+            return "running"
+        } else if input is "config" {
+            return "configuring"
+        }
+    } else if currentState is "running" {
+        if input is "pause" {
+            return "paused"
+        } else if input is "stop" {
+            return "idle"
+        }
+    } else if currentState is "paused" {
+        if input is "resume" {
+            return "running"
+        } else if input is "stop" {
+            return "idle"
+        }
+    } else if currentState is "configuring" {
+        if input is "save" {
+            return "idle"
+        }
+    }
+    
+    return currentState // 无效输入时保持当前状态
+}
+
+set state "idle"
+set state stateMachine(state, "start")
+set state stateMachine(state, "pause")
+set state stateMachine(state, "resume")
+
+// 数据验证流程
+function validateUserData(userData) {
+    var errors []
+    
+    if not userData.name or userData.name is "" {
+        add "Name is required" to errors
+    }
+    
+    if not userData.email or userData.email is "" {
+        add "Email is required" to errors
+    } else {
+        // 简单邮箱验证
+        if not userData.email.includes("@") {
+            add "Invalid email format" to errors
+        }
+    }
+    
+    if not userData.age or userData.age < 0 or userData.age > 150 {
+        add "Invalid age" to errors
+    }
+    
+    return {
+        isValid: errors.length() is 0,
+        errors: errors
+    }
+}
+
+set validUser {name: "John", email: "john@example.com", age: 25}
+set invalidUser {name: "", email: "invalid", age: -5}
+
+set validationResult1 validateUserData(validUser)
+set validationResult2 validateUserData(invalidUser)
+
+// 搜索算法
+function binarySearch(sortedArray, target) {
+    var left 0
+    var right sortedArray.length() - 1
+    
+    while left <= right {
+        var mid Math.floor((left + right) / 2)
+        var midValue sortedArray[mid]
+        
+        if midValue = target {
+            return mid
+        } else if midValue < target {
+            set left mid + 1
+        } else {
+            set right mid - 1
+        }
+    }
+    
+    return -1
+}
+
+set sortedNumbers [1, 3, 5, 7, 9, 11, 13, 15]
+set searchResult binarySearch(sortedNumbers, 7)
+
+// 排序算法（冒泡排序）
+function bubbleSort(arr) {
+    var sorted [...arr] // 创建副本
+    var n sorted.length()
+    
+    for i from 0 to n - 2 {
+        for j from 0 to n - 2 - i {
+            if sorted[j] > sorted[j + 1] {
+                // 交换元素
+                var temp sorted[j]
+                set sorted[j] sorted[j + 1]
+                set sorted[j + 1] temp
+            }
+        }
+    }
+    
+    return sorted
+}
+
+set unsortedArray [64, 34, 25, 12, 22, 11, 90]
+set sortedArray bubbleSort(unsortedArray)
+
+// ===== 条件运算符测试 =====
+// Conditional operator tests
+
+// 三目运算符
+set value 15
+set result value > 10 ? "big" : "small"
+set altResult "big" if value > 10 else "small"
+
+// 嵌套三目运算符
+set number 85
+set letterGrade number >= 90 ? "A" : (number >= 80 ? "B" : (number >= 70 ? "C" : "F"))
+
+// 条件赋值
+set defaultName null
+set userName defaultName ?? "Anonymous"
+
+// ===== 异常处理模拟 =====
+// Exception handling simulation
+
+function safeOperation(operation, a, b) {
+    if operation is "divide" {
+        if b is 0 {
+            return {success: false, error: "Division by zero"}
+        }
+        return {success: true, result: a / b}
+    } else if operation is "sqrt" {
+        if a < 0 {
+            return {success: false, error: "Cannot calculate square root of negative number"}
+        }
+        return {success: true, result: Math.sqrt(a)}
+    }
+    
+    return {success: false, error: "Unknown operation"}
+}
+
+set safeResult1 safeOperation("divide", 10, 2)
+set safeResult2 safeOperation("divide", 10, 0)
+set safeResult3 safeOperation("sqrt", -4)
+
+// 测试完成
+set controlFlowTestCompleted true
+
+"Control flow test completed successfully"

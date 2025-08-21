@@ -1,29 +1,29 @@
-import { ParserIterator } from "../ParserIterator";
-import { StatementNode } from "../Node";
-import { TokenType } from "@/core/lexer/TokenType";
 import { KeywordType, Keywords } from "@/core/lexer/Keyword";
 import { OperatorType } from "@/core/lexer/Operator";
+import { TokenType } from "@/core/lexer/TokenType";
+import { StatementNode } from "../Node";
 import { ParserError, ParserErrorType } from "../ParserError";
+import { ParserIterator } from "../ParserIterator";
 
 // Import statement parsers
-import { parseVariableDeclaration } from "./VariableDeclaration";
-import { 
-    parseFunctionDeclaration, 
-    parseMacroDeclaration, 
-    parseCleanupDeclaration 
-} from "./FunctionDeclaration";
-import { parseLocalDeclaration } from "./LocalDeclaration";
-import { parseIfStatement } from "./IfStatement";
-import { parseWhileStatement } from "./WhileStatement";
-import { parseLoopStatement } from "./LoopStatement";
-import { parseForEachStatement, parseForStatement } from "./ForStatement";
-import { parseBreakStatement } from "./BreakStatement";
-import { parseContinueStatement } from "./ContinueStatement";
-import { parseReturnStatement } from "./ReturnStatement";
 import { parseAwaitStatement } from "./AwaitStatement";
 import { parseBlockStatement } from "./BlockStatement";
-import { tryParseDialogueStatement } from "./DialogueStatement";
+import { parseBreakStatement } from "./BreakStatement";
+import { parseContinueStatement } from "./ContinueStatement";
+import { createDialogueStatement, createNarrativeDialogue } from "./DialogueStatement";
 import { parseSugarOrExpressionStatement } from "./ExpressionStatement";
+import { parseForEachStatement, parseForStatement } from "./ForStatement";
+import {
+    parseCleanupDeclaration,
+    parseFunctionDeclaration,
+    parseMacroDeclaration
+} from "./FunctionDeclaration";
+import { parseIfStatement } from "./IfStatement";
+import { parseLocalDeclaration } from "./LocalDeclaration";
+import { parseLoopStatement } from "./LoopStatement";
+import { parseReturnStatement } from "./ReturnStatement";
+import { parseVariableDeclaration } from "./VariableDeclaration";
+import { parseWhileStatement } from "./WhileStatement";
 
 /**
  * Statement parsing options
@@ -84,12 +84,15 @@ export function parseStatement(iterator: ParserIterator, options?: ParseStatemen
         return parseBlockStatement(iterator, opts);
     }
 
-    // Handle dialogue statements (character: dialogue)
-    if (opts.allowDialogue && currentToken.type === TokenType.Identifier) {
-        const dialogueStatement = tryParseDialogueStatement(iterator, opts);
-        if (dialogueStatement) {
-            return dialogueStatement;
-        }
+    if (opts.allowDialogue && (
+        currentToken.type === TokenType.Dialogue ||
+        currentToken.type === TokenType.MultiLineDialogue
+    )) {
+        return createDialogueStatement(currentToken);
+    }
+
+    if (opts.allowDialogue && currentToken.type === TokenType.String) {
+        return createNarrativeDialogue(currentToken);
     }
 
     // Handle sugar syntax statements and expression statements

@@ -15,6 +15,7 @@ export enum OperatorType {
     LogicalLessThan,             // <
     LogicalLessThanOrEqual,      // <=
     LogicalNot,                  // !
+    Not,                         // not
     Arrow,                       // =>
     Hash,                        // #
 
@@ -65,6 +66,7 @@ export const Operators: {
     [OperatorType.LogicalLessThan]: "<",
     [OperatorType.LogicalLessThanOrEqual]: "<=",
     [OperatorType.LogicalNot]: "!",
+    [OperatorType.Not]: ["not"],
     [OperatorType.Arrow]: "=>",
     [OperatorType.Hash]: "#",
 
@@ -130,6 +132,7 @@ export const OperatorBPMap: Record<
     
     // Unary operators
     [OperatorType.LogicalNot]: 90,
+    [OperatorType.Not]: 90,
 
     // Composite word operators (binary)
     [OperatorType.IsNot]: 40,

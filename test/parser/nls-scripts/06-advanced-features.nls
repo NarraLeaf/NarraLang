@@ -1,0 +1,548 @@
+// 06-advanced-features.nls
+// Advanced features test script covering Promise, destructuring, spread operators, etc.
+// 高级特性测试脚本，涵盖Promise、解构、扩展运算符等
+
+// ===== 解构赋值测试 =====
+// Destructuring assignment tests
+
+// 数组解构
+set sourceArray [1, 2, 3, 4, 5]
+set [first, second, third] sourceArray
+set [a, , c, ...restItems] sourceArray  // 跳过第二个元素
+set [x = 0, y = 0, z = 0] [10, 20]      // 带默认值
+
+// 嵌套数组解构
+set nestedArray [[1, 2], [3, 4], [5, 6]]
+set [[first1, second1], [first2, second2]] nestedArray
+
+// 对象解构
+set sourceObject {name: "John", age: 25, city: "Beijing", country: "China"}
+set {name, age} sourceObject
+set {city, country, zipcode = "000000"} sourceObject  // 带默认值
+
+// 嵌套对象解构
+set complexObject {
+    user: {
+        name: "Alice",
+        contact: {
+            email: "alice@example.com",
+            phone: "123-456-7890"
+        }
+    },
+    settings: {
+        theme: "dark",
+        notifications: true
+    }
+}
+
+set {user: {name: userName, contact: {email}}, settings: {theme}} complexObject
+
+// 函数参数解构
+function processUser({name, age, email = "unknown"}) {
+    return "User: " + name + ", Age: " + age + ", Email: " + email
+}
+
+set userResult processUser({name: "Bob", age: 30})
+
+function processArray([first, second, ...rest]) {
+    return {
+        first: first,
+        second: second,
+        remaining: rest.length()
+    }
+}
+
+set arrayResult processArray([1, 2, 3, 4, 5])
+
+// ===== 扩展运算符测试 =====
+// Spread operator tests
+
+// 数组扩展
+set baseArray [1, 2, 3]
+set spreadArray [...baseArray]
+set combinedArray [...baseArray, 4, 5, 6]
+set betweenArray [0, ...baseArray, 4]
+
+// 多个数组扩展
+set array1 [1, 2]
+set array2 [3, 4]
+set array3 [5, 6]
+set allCombined [...array1, ...array2, ...array3]
+
+// 对象扩展
+set baseObject {a: 1, b: 2}
+set spreadObject {...baseObject}
+set extendedObject {...baseObject, c: 3, d: 4}
+set overrideObject {...baseObject, b: 20, c: 3}
+
+// 多个对象扩展
+set obj1 {a: 1, b: 2}
+set obj2 {c: 3, d: 4}
+set obj3 {e: 5, f: 6}
+set mergedObject {...obj1, ...obj2, ...obj3}
+
+// 条件扩展
+set includeExtra true
+set conditionalSpread {
+    base: "value",
+    ...(includeExtra ? {extra: "included"} : {})
+}
+
+// 函数调用中的扩展
+function sumNumbers(a, b, c, d, e) {
+    return a + b + c + d + e
+}
+
+set numbers [1, 2, 3, 4, 5]
+// set spreadCallResult sumNumbers(...numbers)  // 注意：这可能需要特殊语法支持
+
+// 宏函数修饰符扩展
+function! configureSystem(
+    name,
+    *debug,
+    *verbose,
+    *logLevel
+) {
+    console.log("Configuring system: " + name)
+    if debug { console.log("Debug mode: " + debug) }
+    if verbose { console.log("Verbose mode: " + verbose) }
+    if logLevel { console.log("Log level: " + logLevel) }
+}
+
+set systemConfig {debug: true, verbose: false, logLevel: "info"}
+configureSystem "TestSystem" ...systemConfig
+
+// ===== Promise 测试 =====
+// Promise tests
+
+// 基础 Promise 创建和使用
+function! testBasicPromise() {
+    // 模拟异步操作
+    var promise Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve("Promise resolved successfully")
+        }, 1000)
+    })
+    
+    var result await promise
+    console.log(result)
+    
+    return result
+}
+
+// Promise 链式调用
+function! testPromiseChaining() {
+    var promise Promise.resolve(10)
+        .then(value => value * 2)
+        .then(value => value + 5)
+        .then(value => "Final result: " + value)
+    
+    var result await promise
+    console.log(result)
+    
+    return result
+}
+
+// Promise 错误处理
+function! testPromiseErrorHandling() {
+    var promise Promise((resolve, reject) => {
+        setTimeout(() => {
+            reject("Something went wrong")
+        }, 500)
+    })
+    
+    promise.catch(error => {
+        console.error("Caught error: " + error)
+        return "Error handled"
+    })
+    
+    var result await promise
+    return result
+}
+
+// Promise finally 测试
+function! testPromiseFinally() {
+    var promise Promise.resolve("Success")
+    
+    promise.finally(() => {
+        console.log("Promise completed (finally)")
+    })
+    
+    var result await promise
+    return result
+}
+
+// Promise 取消测试
+function! testPromiseCancellation() {
+    var promise Promise((resolve) => {
+        setTimeout(() => {
+            resolve("This should be cancelled")
+        }, 2000)
+    })
+    
+    promise.onCancel(() => {
+        console.log("Promise was cancelled")
+    })
+    
+    // 模拟取消
+    setTimeout(() => {
+        promise.cancel()
+    }, 1000)
+    
+    var result await promise cleanup {
+        console.log("Cleanup after cancellation")
+    }
+    
+    return result
+}
+
+// ===== 高级函数特性测试 =====
+// Advanced function features tests
+
+// 闭包测试
+function createCounter(initial = 0) {
+    var count initial
+    
+    return function() {
+        add 1 to count
+        return count
+    }
+}
+
+set counter1 createCounter(0)
+set counter2 createCounter(10)
+
+set count1a counter1()  // 1
+set count1b counter1()  // 2
+set count2a counter2()  // 11
+
+// 高阶函数
+function mapTransform(arr, transformer) {
+    var result []
+    
+    for each item in arr {
+        add transformer(item) to result
+    }
+    
+    return result
+}
+
+function composeTransforms(transform1, transform2) {
+    return (value) => transform2(transform1(value))
+}
+
+set double (x) => x * 2
+set addOne (x) => x + 1
+set composed composeTransforms(double, addOne)
+
+set transformResult mapTransform([1, 2, 3], composed)
+
+// 函数柯里化
+function curry(func) {
+    return function curried(...args) {
+        if args.length() >= func.length {
+            return func(...args)
+        }
+        
+        return function(...nextArgs) {
+            return curried(...args, ...nextArgs)
+        }
+    }
+}
+
+function addThree(a, b, c) {
+    return a + b + c
+}
+
+set curriedAdd curry(addThree)
+set addFive curriedAdd(5)
+set addFiveAndTwo addFive(2)
+set finalResult addFiveAndTwo(3)  // 10
+
+// ===== 内建对象高级用法测试 =====
+// Built-in objects advanced usage tests
+
+// Math 对象高级用法
+function advancedMathOperations() {
+    var numbers [1, 5, 3, 9, 2, 8, 4]
+    
+    var maxValue Math.max(...numbers)
+    var minValue Math.min(...numbers)
+    var randomValue Math.random()
+    var randomInt Math.floor(Math.random() * 100)
+    
+    // 统计计算
+    var sum numbers.reduce((acc, x) => acc + x, 0)
+    var mean sum / numbers.length()
+    var variance numbers.reduce((acc, x) => acc + Math.pow(x - mean, 2), 0) / numbers.length()
+    var stdDev Math.sqrt(variance)
+    
+    return {
+        max: maxValue,
+        min: minValue,
+        mean: mean,
+        stdDev: stdDev,
+        randomInt: randomInt
+    }
+}
+
+set mathStats advancedMathOperations()
+
+// Date 对象高级用法
+function dateOperations() {
+    var now Date.now()
+    var year Date.getYear(now)
+    var month Date.getMonth(now)
+    var day Date.getDate(now)
+    
+    var formatted Date.format(now, "YYYY-MM-DD HH:mm:ss")
+    var isoString Date.toISOString(now)
+    
+    // 日期计算
+    var oneDay 24 * 60 * 60 * 1000
+    var tomorrow now + oneDay
+    var yesterday now - oneDay
+    
+    return {
+        current: formatted,
+        tomorrow: Date.format(tomorrow, "YYYY-MM-DD"),
+        yesterday: Date.format(yesterday, "YYYY-MM-DD"),
+        iso: isoString
+    }
+}
+
+set dateInfo dateOperations()
+
+// Random 对象高级用法
+function randomOperations() {
+    var randomInt Random.int(1, 100)
+    var randomFloat Random.float(0.0, 1.0)
+    var randomBool Random.bool()
+    
+    var choices ["red", "green", "blue", "yellow"]
+    var randomChoice Random.pick(choices)
+    
+    var shuffledArray Random.shuffle([1, 2, 3, 4, 5])
+    var uuid Random.uuid()
+    
+    return {
+        int: randomInt,
+        float: randomFloat,
+        bool: randomBool,
+        choice: randomChoice,
+        shuffled: shuffledArray,
+        uuid: uuid
+    }
+}
+
+set randomResults randomOperations()
+
+// ===== 作用域和闭包高级测试 =====
+// Advanced scope and closure tests
+
+set globalCounter 0
+
+function createAdvancedCounter() {
+    var privateCount 0
+    var multiplier 1
+    
+    return {
+        increment() {
+            add multiplier to privateCount
+            return privateCount
+        },
+        decrement() {
+            sub multiplier from privateCount
+            return privateCount
+        },
+        setMultiplier(newMultiplier) {
+            set multiplier newMultiplier
+        },
+        getValue() {
+            return privateCount
+        },
+        reset() {
+            set privateCount 0
+        }
+    }
+}
+
+set advancedCounter createAdvancedCounter()
+set val1 advancedCounter.increment()  // 1
+set val2 advancedCounter.increment()  // 2
+advancedCounter.setMultiplier(5)
+set val3 advancedCounter.increment()  // 7
+
+// 模块模式
+function createModule() {
+    var privateData {
+        config: {debug: false, version: "1.0"},
+        cache: {}
+    }
+    
+    return {
+        getConfig() {
+            return {...privateData.config}
+        },
+        setConfig(newConfig) {
+            set privateData.config {...privateData.config, ...newConfig}
+        },
+        cache: {
+            set(key, value) {
+                set privateData.cache[key] value
+            },
+            get(key) {
+                return privateData.cache[key]
+            },
+            clear() {
+                set privateData.cache {}
+            }
+        }
+    }
+}
+
+set moduleInstance createModule()
+moduleInstance.setConfig({debug: true})
+moduleInstance.cache.set("user", "Alice")
+set cachedUser moduleInstance.cache.get("user")
+
+// ===== 类型检查和验证测试 =====
+// Type checking and validation tests
+
+function getType(value) {
+    if value is null {
+        return "null"
+    }
+    
+    if Array.isArray(value) {
+        return "array"
+    }
+    
+    // 简化的类型检查
+    var typeStr typeof(value)
+    return typeStr
+}
+
+function validateSchema(data, schema) {
+    var errors []
+    
+    var schemaKeys schema.keys()
+    for each key in schemaKeys {
+        var expectedType schema[key]
+        var actualValue data[key]
+        
+        if not data.has(key) {
+            add "Missing required field: " + key to errors
+            continue
+        }
+        
+        var actualType getType(actualValue)
+        if actualType != expectedType {
+            add "Type mismatch for " + key + ": expected " + expectedType + ", got " + actualType to errors
+        }
+    }
+    
+    return {
+        valid: errors.length() is 0,
+        errors: errors
+    }
+}
+
+set userSchema {
+    name: "string",
+    age: "number",
+    active: "boolean",
+    tags: "array"
+}
+
+set validUserData {
+    name: "John",
+    age: 25,
+    active: true,
+    tags: ["user", "active"]
+}
+
+set invalidUserData {
+    name: "John",
+    age: "twenty-five",  // 错误类型
+    active: true
+    // 缺少 tags
+}
+
+set validationResult1 validateSchema(validUserData, userSchema)
+set validationResult2 validateSchema(invalidUserData, userSchema)
+
+// ===== 元编程和动态特性测试 =====
+// Metaprogramming and dynamic features tests
+
+// 动态属性访问
+function getNestedProperty(obj, path) {
+    var keys path.split(".")
+    var current obj
+    
+    for each key in keys {
+        if current and current.has(key) {
+            set current current[key]
+        } else {
+            return null
+        }
+    }
+    
+    return current
+}
+
+set complexData {
+    user: {
+        profile: {
+            personal: {
+                name: "Alice",
+                age: 30
+            }
+        }
+    }
+}
+
+set nestedName getNestedProperty(complexData, "user.profile.personal.name")
+set nonExistent getNestedProperty(complexData, "user.profile.invalid.path")
+
+// 动态函数创建
+function createValidator(rules) {
+    return function(data) {
+        var errors []
+        
+        var ruleKeys rules.keys()
+        for each key in ruleKeys {
+            var rule rules[key]
+            var value data[key]
+            
+            if rule.required and (not data.has(key) or value is null) {
+                add key + " is required" to errors
+            }
+            
+            if value and rule.minLength and value.length() < rule.minLength {
+                add key + " must be at least " + rule.minLength + " characters" to errors
+            }
+            
+            if value and rule.maxLength and value.length() > rule.maxLength {
+                add key + " must be no more than " + rule.maxLength + " characters" to errors
+            }
+        }
+        
+        return {
+            valid: errors.length() is 0,
+            errors: errors
+        }
+    }
+}
+
+set nameValidator createValidator({
+    name: {required: true, minLength: 2, maxLength: 50}
+})
+
+set validationResult3 nameValidator({name: "Alice"})
+set validationResult4 nameValidator({name: "A"})
+
+// 测试完成
+set advancedFeaturesTestCompleted true
+
+"Advanced features test completed successfully"

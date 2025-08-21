@@ -1,0 +1,456 @@
+// 07-scenes-dialogues.nls
+// Scenes and dialogues test script covering characters, scenes, dialogues, narration
+// 场景和对话测试脚本，涵盖角色、场景、对话、旁白等
+
+// ===== 角色定义测试 =====
+// Character definition tests
+
+// 基础角色定义
+character John "John Smith"
+character Alice "Alice Johnson"
+character Bob "Bob Wilson"
+
+// 带描述的角色定义
+character Narrator "Story Narrator"
+character Mysterious "???"
+
+// 动态角色定义
+set characterName "Dynamic Character"
+character DynamicChar characterName
+
+// ===== 图片和资源定义测试 =====
+// Image and resource definition tests
+
+// 角色图片定义
+image John "john.png" pos (50%, 50%) scale 0.8
+image Alice "alice.png" pos (30%, 60%) scale 1.0
+image Bob "bob_happy.png" pos (70%, 40%) scale 0.9
+
+// 背景图片
+image Background "sunset_bg.png"
+image RoomBg "room_interior.jpg"
+
+// 动态图片路径
+set imageFolder "assets/characters/"
+set johnImagePath imageFolder + "john_default.png"
+image JohnDynamic johnImagePath pos (50%, 50%)
+
+// ===== 基础场景测试 =====
+// Basic scene tests
+
+// 简单场景
+scene IntroScene(
+    bg "intro_bg.png"
+) {
+    "Welcome to NarraLang test scenes!"
+    
+    show John duration 1.0
+    John: "Hello, I'm John. Welcome to our test!"
+    
+    show Alice duration 1.0
+    Alice: "Hi there! I'm Alice."
+    
+    hide John duration 0.5
+    hide Alice duration 0.5
+}
+
+// 带参数的场景
+scene DialogueScene(
+    bg "room_bg.png",
+    music "background_music.mp3"
+) {
+    "The two friends met in a cozy room."
+    
+    show John duration 1.0
+    show Alice duration 1.0 
+    
+    John: "It's nice to see you again, Alice."
+    Alice: "Likewise, John! How have you been?"
+    
+    John: {
+        "I've been working on some interesting projects."
+        "One of them is this new language called NarraLang."
+        "It's designed specifically for interactive storytelling."
+    }
+    
+    Alice: "That sounds fascinating! Tell me more about it."
+}
+
+// ===== 复杂对话测试 =====
+// Complex dialogue tests
+
+scene ComplexDialogueScene(
+    bg "library_bg.png"
+) {
+    // 场景设置
+    set currentTime "afternoon"
+    set location "library"
+    set mood "peaceful"
+    
+    "It was a {mood} {currentTime} in the {location}."
+    
+    show John duration 1.0
+    show Alice duration 1.0
+    
+    // 带插值的对话
+    set bookCount 15
+    Alice: "I've read {bookCount} books this month!"
+    
+    // 表达式插值
+    John: "That's {bookCount > 10 ? 'impressive' : 'decent'}! I've only read {Math.floor(bookCount / 3)} myself."
+    
+    // 条件对话
+    if bookCount > 10 {
+        Alice: "I've been on a reading streak lately."
+    } else {
+        Alice: "I should read more books."
+    }
+    
+    // 动态角色选择
+    set speaker bookCount > 10 ? Alice : John
+    speaker: "Reading is such a wonderful hobby."
+    
+    // 临时角色
+    "Librarian": "Excuse me, the library will be closing soon."
+    
+    John: "Thank you for letting us know."
+    Alice: "We should probably head out then."
+    
+    hide John duration 1.0
+    hide Alice duration 1.0
+}
+
+// ===== 富文本对话测试 =====
+// Rich text dialogue tests
+
+scene RichTextScene(
+    bg "magic_forest.png"
+) {
+    show Mysterious duration 2.0
+    
+    // 基础样式标签
+    Mysterious: "Welcome to the <b>Enchanted Forest</b>."
+    Mysterious: "Here, <i>magic</i> flows through everything."
+    
+    // 颜色标签
+    Mysterious: "You can see <red>fire sprites</red> and <blue>water elementals</blue> here."
+    Mysterious: "The <#00ff00>emerald trees</> shimmer in the moonlight."
+    
+    // 嵌套样式
+    Mysterious: "The most <b><i>powerful magic</i></b> lies deep within."
+    Mysterious: "Be careful of the <red><b>dangerous creatures</b></red> that lurk about."
+    
+    // 停顿标签
+    Mysterious: "There is something you must know<pause duration={2000} />but I cannot tell you directly."
+    Mysterious: "You must discover it<pause />for yourself."
+    
+    // Ruby注音
+    Mysterious: "The ancient word is <p ruby="まほう">魔法</p>."
+    
+    // 自定义单词
+    Mysterious: "Listen carefully to this <p cps=0.5>very important message</p>."
+    
+    hide Mysterious duration 2.0
+}
+
+// ===== 多行对话和旁白测试 =====
+// Multi-line dialogue and narration tests
+
+scene NarrationScene(
+    bg "storyteller_room.png"
+) {
+    // 多行旁白
+    "Once upon a time, in a land far, far away, there lived a young programmer."
+    "This programmer had a dream: to create a language that could tell stories."
+    "Little did they know that their dream would soon become reality."
+    
+    show Narrator duration 1.0
+    
+    // 角色多行对话
+    Narrator: {
+        "Let me tell you about the three fundamental principles of storytelling."
+        "First, every story needs compelling characters."
+        "Second, there must be conflict or challenge to overcome."
+        "Third, the story should have a satisfying resolution."
+    }
+    
+    // null角色多行对话（旁白形式）
+    null: {
+        "The narrator paused, looking thoughtful."
+        "The room fell silent as the weight of these words settled in."
+        "Then, slowly, a smile spread across their face."
+    }
+    
+    Narrator: "Now, let's see these principles in action!"
+    
+    hide Narrator duration 1.0
+}
+
+// ===== 交互式对话测试 =====
+// Interactive dialogue tests
+
+scene InteractiveScene(
+    bg "decision_point.png"
+) {
+    set playerName "Hero"
+    set playerLevel 5
+    set hasKey false
+    
+    show John duration 1.0
+    
+    John: "Welcome, {playerName}! I see you're level {playerLevel}."
+    
+    // 条件分支对话
+    if playerLevel >= 5 {
+        John: "You're experienced enough for this quest."
+        set hasKey true
+    } else {
+        John: "You might want to gain more experience first."
+    }
+    
+    // 基于状态的对话
+    if hasKey {
+        John: "Here, take this key. You'll need it."
+        "John hands you a mysterious golden key."
+    } else {
+        John: "Come back when you're stronger."
+    }
+    
+    // 模拟选择结果
+    set playerChoice "accept"
+    
+    if playerChoice is "accept" {
+        John: "Excellent! Your adventure begins now."
+    } else {
+        John: "I understand. Take your time to decide."
+    }
+    
+    hide John duration 1.0
+}
+
+// ===== 场景变量和状态测试 =====
+// Scene variables and state tests
+
+scene StateManagementScene(
+    bg "village.png"
+) {
+    // 局部场景变量
+    local set villagePopulation 150
+    local set mayorName "Elder Thompson"
+    local set isMarketDay true
+    
+    "Welcome to our small village."
+    
+    if isMarketDay {
+        "Today is market day, and the village is bustling with activity."
+        "You can see {villagePopulation} villagers going about their business."
+    } else {
+        "The village is quiet today."
+    }
+    
+    show John duration 1.0
+    John: "Hello, traveler! I'm John, one of the villagers here."
+    
+    // 使用局部变量
+    John: "Our mayor, {mayorName}, is always welcoming to visitors."
+    John: "We have {villagePopulation} people living here."
+    
+    // 修改局部变量
+    if isMarketDay {
+        add 20 to villagePopulation  // 市场日有访客
+        John: "With all the visitors today, we have about {villagePopulation} people in town."
+    }
+    
+    hide John duration 1.0
+}
+
+// ===== 场景间的变量作用域测试 =====
+// Inter-scene variable scope tests
+
+// 全局变量
+set globalStoryProgress 0
+set globalPlayerName "TestPlayer"
+
+scene FirstScene(bg "start.png") {
+    set globalStoryProgress 1
+    
+    show Alice duration 1.0
+    Alice: "Hello, {globalPlayerName}! Your journey begins here."
+    Alice: "Story progress: {globalStoryProgress}"
+    hide Alice duration 1.0
+}
+
+scene SecondScene(bg "middle.png") {
+    // 访问全局变量
+    Alice: "Welcome back, {globalPlayerName}!"
+    Alice: "I see you've made progress: {globalStoryProgress}"
+    
+    // 修改全局变量
+    set globalStoryProgress 2
+    Alice: "You're now at stage {globalStoryProgress}."
+}
+
+// ===== 动态场景生成测试 =====
+// Dynamic scene generation tests
+
+function! createDynamicScene(sceneName, background, characters) {
+    // 这是一个模拟动态场景创建的宏函数
+    console.log("Creating scene: " + sceneName)
+    console.log("Background: " + background)
+    console.log("Characters: " + characters.join(", "))
+}
+
+set sceneConfig {
+    name: "DynamicTestScene",
+    background: "dynamic_bg.png",
+    characters: ["John", "Alice", "Bob"]
+}
+
+createDynamicScene sceneConfig.name background sceneConfig.background
+
+// ===== 场景流程控制测试 =====
+// Scene flow control tests
+
+scene FlowControlScene(bg "control_room.png") {
+    set step 1
+    
+    loop 3 times {
+        "This is step {step} of the process."
+        add 1 to step
+    }
+    
+    show John duration 1.0
+    
+    // 场景中的条件控制
+    set timeOfDay "morning"
+    
+    if timeOfDay is "morning" {
+        John: "Good morning! Ready to start the day?"
+    } else if timeOfDay is "afternoon" {
+        John: "Good afternoon! How's your day going?"
+    } else {
+        John: "Good evening! Almost time to rest."
+    }
+    
+    // 场景中的变量操作
+    set taskCount 0
+    
+    loop 5 times {
+        add 1 to taskCount
+        if taskCount is 3 {
+            John: "We're halfway through our tasks!"
+        }
+    }
+    
+    John: "All {taskCount} tasks completed!"
+    
+    hide John duration 1.0
+}
+
+// ===== 特殊对话格式测试 =====
+// Special dialogue format tests
+
+scene SpecialFormatsScene(bg "experiment_lab.png") {
+    // 表达式作为角色名
+    set speakerIndex 0
+    set speakers ["John", "Alice", "Bob"]
+    
+    speakers[speakerIndex]: "I'm speaker number {speakerIndex}!"
+    
+    set speakerIndex 1
+    speakers[speakerIndex]: "Now I'm speaker number {speakerIndex}!"
+    
+    // 计算属性作为角色名
+    set prefix "Dr. "
+    set suffix " Smith"
+    (prefix + "John" + suffix): "I'm a doctor!"
+    
+    // 条件角色名
+    set isFormal true
+    (isFormal ? "Professor John" : "John"): "Greetings!"
+    
+    // 动态生成的对话内容
+    set inventory ["sword", "shield", "potion"]
+    set itemCount inventory.length()
+    
+    John: "I have {itemCount} items: {inventory.join(', ')}."
+    
+    // 复杂表达式插值
+    set baseHealth 100
+    set damage 25
+    set healingPortion 15
+    
+    Alice: "Health: {baseHealth - damage + healingPortion}/{baseHealth} ({Math.round((baseHealth - damage + healingPortion) / baseHealth * 100)}%)"
+}
+
+// ===== 场景嵌套和模块化测试 =====
+// Scene nesting and modularization tests
+
+scene MainStoryScene(bg "main_story.png") {
+    "This is the main story scene."
+    
+    // 模拟调用子场景或模块
+    function! playSubSequence(sequenceName) {
+        console.log("Playing subsequence: " + sequenceName)
+        
+        if sequenceName is "introduction" {
+            show John duration 1.0
+            John: "Let me introduce myself."
+            hide John duration 1.0
+        } else if sequenceName is "conflict" {
+            show Alice duration 1.0
+            Alice: "There seems to be a problem we need to solve."
+            hide Alice duration 1.0
+        } else if sequenceName is "resolution" {
+            show John duration 1.0
+            show Alice duration 1.0
+            John: "I think we found the solution!"
+            Alice: "Great work, John!"
+            hide John duration 1.0
+            hide Alice duration 1.0
+        }
+    }
+    
+    playSubSequence "introduction"
+    playSubSequence "conflict"
+    playSubSequence "resolution"
+    
+    "The story concludes successfully."
+}
+
+// ===== 错误处理和边界情况测试 =====
+// Error handling and edge cases tests
+
+scene EdgeCaseScene(bg "test_environment.png") {
+    // 空字符串对话
+    John: ""
+    
+    // 只有空格的对话
+    Alice: "   "
+    
+    // 极长的对话
+    set longText "This is a very long piece of dialogue that tests how the system handles extended text. ".repeat(10)
+    Bob: longText
+    
+    // Unicode字符对话
+    Mysterious: "Unicode test: 🎮🎯🎲 العربية русский 日本語"
+    
+    // 特殊字符
+    John: "Special chars: !@#$%^&*()_+-={}[]|\\:;\"'\<\>,.?/"
+    
+    // 数字作为字符串
+    Alice: "Numbers as text: 123456789"
+    
+    // 布尔值插值
+    set isActive true
+    Bob: "Status is {isActive ? 'active' : 'inactive'}"
+    
+    // null值处理
+    set nullValue null
+    John: "Null value: {nullValue ?? 'N/A'}"
+}
+
+// 测试完成标记
+set scenesDialoguesTestCompleted true
+
+"Scenes and dialogues test completed successfully"

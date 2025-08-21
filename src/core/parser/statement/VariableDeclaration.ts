@@ -110,22 +110,19 @@ export function parseVariableDeclaration(iterator: ParserIterator): VariableDecl
         }
         declarations.push({ left, value });
 
-        const next = iterator.getCurrentToken();
-        if (!next || next.type === TokenType.NewLine) {
-            end = value.trace.end;
-            break;
-        }
-
         // Consume the comma
-        const consumedComma = iterator.popTokenIf(token => token.type === TokenType.Operator && token.value === OperatorType.Comma);
-        if (consumedComma) {
+        const comma = iterator.popToken();
+        if (comma && comma.type === TokenType.Operator && comma.value === OperatorType.Comma) {
+            end = comma.end ?? null;
+
+            iterator.skipNewLine();
             continue;
         }
 
         throw new ParserError(
             ParserErrorType.UnexpectedToken,
             "Expected ',' or line break between declarations",
-        ).setPos(next);
+        ).setPos(iterator.getCurrentToken());
     }
 
     const start = currentToken.start;

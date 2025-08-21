@@ -43,7 +43,11 @@ In progress...
 
 In progress...
 
-## 🌍 Internationalization
+## 🧩 Integration with NarraLeaf-React
+
+In progress...
+
+## 🌍 Localization
 
 In progress...
 
@@ -52,6 +56,7 @@ In progress...
 > MIT © [NarraLeaf Project](https://github.com/NarraLeaf)
 
 ## Contributing
+
 We're just getting started! Feel free to:
 
 Report issues

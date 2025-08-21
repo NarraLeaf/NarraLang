@@ -1,0 +1,387 @@
+// 05-strings.nls
+// Strings and text test script covering string operations, text elements, dialogues
+// 字符串和文本测试脚本，涵盖字符串操作、文本元素、对话等
+
+// ===== 基础字符串测试 =====
+// Basic string tests
+
+// 字符串字面量
+set singleQuote 'Hello, World!'
+set doubleQuote "Hello, World!"
+set emptyString ""
+set singleChar "A"
+
+// 字符串访问
+set str "Hello, World!"
+set firstChar str[0]      // "H"
+set lastChar str[-1]      // "!"
+set charAtIndex str[7]    // "W"
+
+// 字符串切片
+set greeting "Hello, World!"
+set slice1 greeting[1, 5]    // "ello"
+set slice2 greeting[7,]      // "World!"
+set slice3 greeting[, 5]     // "Hello"
+set slice4 greeting[, -1]    // "Hello, World"
+
+// 字符串拼接
+set firstName "John"
+set lastName "Doe"
+set fullName firstName + " " + lastName
+set greeting2 "Hello, " + fullName + "!"
+
+// ===== 字符串插值测试 =====
+// String interpolation tests
+
+set playerName "Alice"
+set playerLevel 25
+set playerHealth 80
+
+// 基础插值
+set statusMessage "Player {playerName} is level {playerLevel}"
+
+// 表达式插值
+set healthMessage "Health: {playerHealth}/100 ({playerHealth * 100 / 100}%)"
+
+// 复杂插值
+set expNeeded 1000
+set currentExp 750
+set expMessage "XP: {currentExp}/{expNeeded} (Need {expNeeded - currentExp} more)"
+
+// 嵌套插值
+set timeHour 14
+set timeMinute 30
+set timeMessage "Current time: {timeHour < 10 ? "0" + timeHour : timeHour}:{timeMinute < 10 ? "0" + timeMinute : timeMinute}"
+
+// ===== 字符串转义测试 =====
+// String escape tests
+
+// 基本转义
+set newlineString "First line\nSecond line"
+set tabString "Column1\tColumn2"
+set quoteString "She said: \"Hello!\""
+set backslashString "Path: C:\\Program Files\\App"
+
+// Unicode转义
+set unicodeString "Emoji: \u{1F600} \u{1F44D}"
+set chineseString "中文: \u{4E2D}\u{6587}"
+
+// 转义大括号和标签
+set escapedBraces "Not interpolation: \{variable\}"
+set escapedTags "Not a tag: \<b\>text\</b\>"
+
+// ===== 文本元素测试 =====
+// Text elements tests
+
+// 粗体文本
+set boldText "This is <b>bold text</b> in the middle"
+set allBoldText "This entire text is bold"b
+
+// 斜体文本
+set italicText "This is <i>italic text</i> in the middle"
+set allItalicText "This entire text is italic"i
+
+// 颜色文本
+set coloredText "This is <#ff0000>red text</> and <#00ff00>green text</>"
+set namedColorText "This is <red>red</red> and <blue>blue</blue> text"
+set allRedText "This entire text is red"#ff0000
+
+// 嵌套样式
+set nestedStyles "This is <b><i>bold and italic</i></b> text"
+set colorAndBold "This is <red><b>red and bold</b></red> text"
+
+// 样式优先级
+set priorityTest "<#000><#fff>This text is actually white</></>"
+
+// ===== 自定义单词元素测试 =====
+// Custom word elements tests
+
+// Ruby注音
+set rubyText "昨日、<p ruby="図書館">としょかん</p>で本を借りました。"
+set rubyVariations "汉字 <p ruby='pinyin'>hànzì</p> 测试"
+set rubyWithBraces "测试 <p ruby={"拼音"}>cèshì</p> 功能"
+
+// 自定义单词属性
+set customWord "请你，<p cps=1 bold=true>等！一！下！</p>"
+set slowText "这里有<p cps=0.5>缓慢的文字</p>速度"
+
+// ===== 停顿元素测试 =====
+// Pause elements tests
+
+// 基础停顿
+set pauseText "这道题的答案是！<pause /> 100！"
+
+// 带时间的停顿
+set timedPause "等待中<pause duration={1000} />完成！"
+set timedPauseAlt "等待中<pause duration=1000 />完成！"
+
+// ===== 字符串原生方法测试 =====
+// String native methods tests
+
+function testStringMethods() {
+    var str "Hello, World!"
+    
+    // 基础方法
+    var length str.length()
+    var charAt str.charAt(1)
+    var includes str.includes("World")
+    var indexOf str.indexOf("o")
+    var lastIndexOf str.lastIndexOf("o")
+    
+    // 切片和截取
+    var slice str.slice(0, 5)
+    var substring str.substring(7, 12)
+    
+    // 大小写转换
+    var upper str.toUpperCase()
+    var lower str.toLowerCase()
+    
+    // 字符串处理
+    var trimmed "  spaced  ".trim()
+    var repeated "hi".repeat(3)
+    
+    // 字符串检查
+    var startsWith str.startsWith("Hello")
+    var endsWith str.endsWith("!")
+    
+    // 字符串分割和替换
+    var split "a,b,c".split(",")
+    var replaced str.replace("World", "NarraLang")
+    
+    return {
+        length: length,
+        charAt: charAt,
+        includes: includes,
+        indexOf: indexOf,
+        upper: upper,
+        lower: lower,
+        split: split,
+        replaced: replaced
+    }
+}
+
+set stringMethodsResult testStringMethods()
+
+// ===== 复杂文本处理测试 =====
+// Complex text processing tests
+
+// 模板字符串函数
+function formatMessage(template, data) {
+    var result template
+    var keys data.keys()
+    
+    for each key in keys {
+        var placeholder "{" + key + "}"
+        var value data[key]
+        set result result.replace(placeholder, value)
+    }
+    
+    return result
+}
+
+set messageTemplate "Hello {name}, you have {count} {item}!"
+set messageData {name: "Alice", count: 5, item: "messages"}
+set formattedMessage formatMessage(messageTemplate, messageData)
+
+// 文本验证函数
+function validateText(text, maxLength = 100) {
+    if text is null or text is "" {
+        return {valid: false, error: "Text cannot be empty"}
+    }
+    
+    if text.length() > maxLength {
+        return {valid: false, error: "Text too long"}
+    }
+    
+    if not text.includes(" ") and text.length() > 20 {
+        return {valid: false, error: "Text might need spaces"}
+    }
+    
+    return {valid: true}
+}
+
+set validText validateText("This is a valid message")
+set invalidText validateText("")
+set tooLongText validateText("a".repeat(150))
+
+// 文本清理函数
+function cleanText(text) {
+    var cleaned text.trim()
+    
+    // 移除多余空格
+    while cleaned.includes("  ") {
+        set cleaned cleaned.replace("  ", " ")
+    }
+    
+    return cleaned
+}
+
+set messyText "  Hello    World   !  "
+set cleanedText cleanText(messyText)
+
+// ===== 对话系统测试 =====
+// Dialogue system tests
+
+// 定义角色
+character John "John Smith"
+character Alice "Alice Johnson"
+
+// 基础对话
+John: "Hello, Alice! How are you today?"
+Alice: "Hi John! I'm doing great, thanks for asking."
+
+// 字符串角色对话
+"Narrator": "The two friends met in the park on a sunny afternoon."
+
+// 插值对话
+set location "library"
+set time "morning"
+John: "Let's meet at the {location} this {time}."
+
+// 带样式的对话
+Alice: "That sounds <b>great</b>! I'll bring my <i>favorite</i> book."
+John: "Perfect! See you at <#00ff00>9 AM</>"
+
+// 动态角色对话
+set currentSpeaker "Alice"
+currentSpeaker: "This is a dynamic speaker test."
+
+// 表达式角色名
+set speakerIndex 1
+set speakers ["John", "Alice"]
+speakers[speakerIndex]: "Using expression for speaker name."
+
+// ===== 多行对话测试 =====
+// Multi-line dialogue tests
+
+John: {
+    "This is the first line of a multi-line dialogue."
+    "This is the second line, spoken by the same character."
+    "And this is the third line with {location} interpolation."
+}
+
+Alice: {
+    "I can also speak multiple lines."
+    "Each line is displayed separately."
+    "But they're all from the same speaker."
+}
+
+// null角色多行对话
+null: {
+    "This is narrator text without a character name."
+    "Multiple lines of narration."
+    "Very useful for longer descriptions."
+}
+
+// ===== 旁白测试 =====
+// Narration tests
+
+// 基础旁白
+"The sun was setting over the horizon, painting the sky in brilliant shades of orange and pink."
+
+// 带样式的旁白
+"The <b>mysterious</b> figure approached slowly, their <i>footsteps</i> echoing in the <red>darkness</>."
+
+// 插值旁白
+set weather "stormy"
+set visibility "poor"
+"The weather was {weather} and visibility was {visibility}, making travel dangerous."
+
+// 带停顿的旁白
+"There was a long silence<pause duration={2000} />and then everything changed."
+
+// ===== 富文本组合测试 =====
+// Rich text combination tests
+
+// 复杂样式组合
+set richText "This text has <b>bold</b>, <i>italic</i>, <red>color</red>, and even <b><i><blue>all combined</></></> formatting!"
+
+// 样式与插值结合
+set score 95
+set rank "excellent"
+set scoreText "Your score of <b>{score}</b> is <green>{rank}</green>!"
+
+// 多层嵌套
+set playerName2 "Hero"
+set questName "Dragon Slayer"
+set reward 1000
+set questText "Congratulations <b>{playerName2}</b>! You have completed the <i><blue>{questName}</></i> quest and earned <green><b>{reward} gold</b></green>!"
+
+// ===== 文本国际化测试 =====
+// Text internationalization tests
+
+// Unicode字符支持
+set unicodeText "Unicode支持: 🎮🎯🎲 العربية русский 日本語"
+
+// 多语言插值
+set lang "zh"
+set username "用户"
+set multiLangText lang is "zh" ? "欢迎, {username}!" : "Welcome, {username}!"
+
+// 字符串数组用于多语言
+set messages {
+    en: "Hello, World!",
+    zh: "你好，世界！",
+    ja: "こんにちは、世界！"
+}
+
+set currentLang "zh"
+set localizedMessage messages[currentLang]
+
+// ===== 文本工具函数测试 =====
+// Text utility functions tests
+
+// 字符统计
+function countCharacters(text) {
+    var total text.length()
+    var withoutSpaces text.replace(" ", "").length()
+    var words text.split(" ").length()
+    
+    return {
+        total: total,
+        withoutSpaces: withoutSpaces,
+        words: words
+    }
+}
+
+set textStats countCharacters("Hello World! This is a test.")
+
+// 文本截断
+function truncateText(text, maxLength, suffix = "...") {
+    if text.length() <= maxLength {
+        return text
+    }
+    
+    return text.slice(0, maxLength - suffix.length()) + suffix
+}
+
+set longText "This is a very long text that needs to be truncated for display purposes."
+set truncated truncateText(longText, 30)
+
+// 标签清理（模拟）
+function stripTags(text) {
+    var result text
+    
+    // 简单的标签移除（实际实现会更复杂）
+    while result.includes("<") and result.includes(">") {
+        var startTag result.indexOf("<")
+        var endTag result.indexOf(">")
+        if startTag >= 0 and endTag > startTag {
+            var before result.slice(0, startTag)
+            var after result.slice(endTag + 1)
+            set result before + after
+        } else {
+            break
+        }
+    }
+    
+    return result
+}
+
+set taggedText "This is <b>bold</b> and <i>italic</i> text."
+set plainText stripTags(taggedText)
+
+// 测试完成
+set stringsTestCompleted true
+
+"Strings and text test completed successfully"

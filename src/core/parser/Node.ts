@@ -28,6 +28,9 @@ export enum NodeType {
     // Sugar syntax statements (DSL specific)
     SugarCallStatement = "SugarCallStatement",     // Custom sugar syntax like "image", "character"
     
+    // Expression statements
+    ExpressionStatement = "ExpressionStatement",   // Expression as statement
+    
     // Block statements
     BlockStatement = "BlockStatement",             // { ... }
     

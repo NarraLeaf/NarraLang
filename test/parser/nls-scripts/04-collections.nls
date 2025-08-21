@@ -1,0 +1,480 @@
+// 04-collections.nls
+// Collections test script covering arrays, objects, tuples and their operations
+// 集合类型测试脚本，涵盖数组、对象、元组及其各种操作
+
+// ===== 数组基础操作测试 =====
+// Array basic operations tests
+
+// 数组创建
+set emptyArray []
+set numberArray [1, 2, 3, 4, 5]
+set mixedArray [1, "hello", true, null, [1, 2]]
+set nestedArray [[1, 2], [3, 4], [5, 6]]
+
+// 数组访问
+set firstItem numberArray[0]
+set lastItem numberArray[-1]
+set middleItem numberArray[2]
+
+// 数组切片
+set slice1 numberArray[1, 3]  // [2, 3]
+set slice2 numberArray[2,]    // [3, 4, 5]
+set slice3 numberArray[, 3]   // [1, 2, 3]
+set slice4 numberArray[, -1]  // [1, 2, 3, 4]
+
+// 数组修改
+set modifiableArray [1, 2, 3, 4, 5]
+set modifiableArray[0] 10
+add 6 to modifiableArray
+insert 0 to modifiableArray at 0
+remove 2 from modifiableArray
+
+// ===== 数组高级操作测试 =====
+// Array advanced operations tests
+
+// 数组拼接
+set array1 [1, 2, 3]
+set array2 [4, 5, 6]
+set concatenated array1 + array2
+
+// 数组扩展运算符
+set spread1 [...array1]
+set spread2 [...array1, ...array2]
+set spread3 [0, ...array1, 6, 7]
+
+// is in 操作符
+set testArray [1, 2, {a: 1}, [3, 4]]
+set contains1 2 is in testArray
+set contains2 {a: 1} is in testArray  // 宽松比较
+set contains3 [3, 4] is in testArray
+
+// ===== 数组原生方法测试 =====
+// Array native methods tests
+
+function testArrayMethods() {
+    var arr [1, 2, 3, 4, 5]
+    
+    // 基础方法
+    var length arr.length()
+    var includes arr.includes(3)
+    var indexOf arr.indexOf(3)
+    var lastIndexOf arr.lastIndexOf(3)
+    
+    // 修改方法
+    arr.add(6)
+    arr.insert(2, 0)
+    var popped arr.pop()
+    var shifted arr.shift()
+    arr.unshift(0)
+    
+    // 数组转换
+    var joined arr.join(",")
+    var sliced arr.slice(1, 3)
+    var reversed arr.reverse()
+    
+    return {
+        length: length,
+        includes: includes,
+        indexOf: indexOf,
+        joined: joined,
+        final: arr
+    }
+}
+
+set arrayMethodsResult testArrayMethods()
+
+// 数组高阶方法
+function testArrayHigherOrder() {
+    var numbers [1, 2, 3, 4, 5]
+    
+    // map
+    var doubled numbers.map((x) => x * 2)
+    
+    // filter
+    var evens numbers.filter((x) => x % 2 = 0)
+    
+    // reduce
+    var sum numbers.reduce((acc, x) => acc + x, 0)
+    
+    // find
+    var found numbers.find((x) => x > 3)
+    
+    // some 和 every
+    var hasEven numbers.some((x) => x % 2 = 0)
+    var allPositive numbers.every((x) => x > 0)
+    
+    return {
+        doubled: doubled,
+        evens: evens,
+        sum: sum,
+        found: found,
+        hasEven: hasEven,
+        allPositive: allPositive
+    }
+}
+
+set higherOrderResult testArrayHigherOrder()
+
+// ===== 对象基础操作测试 =====
+// Object basic operations tests
+
+// 对象创建
+set emptyObject {}
+set simpleObject {name: "John", age: 25}
+set nestedObject {
+    user: {
+        name: "Alice",
+        profile: {
+            age: 30,
+            preferences: {
+                theme: "dark",
+                language: "zh"
+            }
+        }
+    },
+    settings: {
+        notifications: true,
+        privacy: "high"
+    }
+}
+
+// 计算属性名
+set key "dynamicKey"
+set dynamicObject {
+    [key]: "dynamic value",
+    ["computed" + "Key"]: "computed value"
+}
+
+// 对象访问
+set userName simpleObject.name
+set userAge simpleObject["age"]
+set nestedValue nestedObject.user.profile.age
+
+// 对象修改
+set modifiableObject {a: 1, b: 2}
+set modifiableObject.c 3
+set modifiableObject["d"] 4
+remove b from modifiableObject
+
+// ===== 对象扩展和合并测试 =====
+// Object spread and merge tests
+
+set baseObject {a: 1, b: 2}
+set extendedObject {...baseObject, c: 3}
+set overrideObject {...baseObject, b: 20, c: 3}
+
+// 条件扩展
+set condition true
+set conditionalObject {
+    a: 1,
+    ...condition ? {b: 2} : {c: 3}
+}
+
+// 对象合并函数
+function mergeObjects(target, source) {
+    var result {...target}
+    var keys source.keys()
+    
+    for each key in keys {
+        set result[key] source[key]
+    }
+    
+    return result
+}
+
+set merged mergeObjects({a: 1, b: 2}, {b: 3, c: 4})
+
+// ===== 对象方法测试 =====
+// Object methods tests
+
+set methodObject {
+    name: "Test Object",
+    value: 42,
+    getValue() {
+        return value
+    },
+    setValue(newValue) {
+        set value newValue
+        return value
+    },
+    toString() {
+        return name + ": " + value
+    }
+}
+
+set objectValue methodObject.getValue()
+set updatedValue methodObject.setValue(100)
+set stringRepresentation methodObject.toString()
+
+// ===== 对象原生方法测试 =====
+// Object native methods tests
+
+function testObjectMethods() {
+    var obj {a: 1, b: 2, c: 3}
+    
+    var keys obj.keys()
+    var values obj.values()
+    var entries obj.entries()
+    var hasA obj.has("a")
+    var hasD obj.has("d")
+    
+    obj.set("d", 4)
+    var afterSet obj.get("d")
+    
+    obj.remove("c")
+    var afterRemove obj.keys()
+    
+    return {
+        keys: keys,
+        values: values,
+        entries: entries,
+        hasA: hasA,
+        hasD: hasD,
+        afterSet: afterSet,
+        afterRemove: afterRemove
+    }
+}
+
+set objectMethodsResult testObjectMethods()
+
+// ===== 对象解构测试 =====
+// Object destructuring tests
+
+set sourceObject {name: "John", age: 25, city: "Beijing"}
+set {name, age} sourceObject
+set {city, country = "China"} sourceObject
+
+// 嵌套解构
+set complexObject {
+    user: {name: "Alice", age: 30},
+    settings: {theme: "dark", lang: "en"}
+}
+set {user: {name: userName2}, settings: {theme}} complexObject
+
+// ===== 元组基础操作测试 =====
+// Tuple basic operations tests
+
+// 元组创建
+set singleTuple (1,)
+set numberTuple (1, 2, 3, 4, 5)
+set mixedTuple (1, "hello", true, null)
+set nestedTuple ((1, 2), (3, 4), (5, 6))
+
+// 元组访问
+set tupleFirst numberTuple[0]
+set tupleLast numberTuple[-1]
+set tupleSlice numberTuple[1, 3]
+
+// 元组拼接
+set tuple1 (1, 2, 3)
+set tuple2 (4, 5, 6)
+set tupleConcatenated tuple1 + tuple2
+
+// 元组 is in 操作
+set tupleContains 2 is in numberTuple
+set tupleContainsObject {a: 1} is in ((1, 2), {a: 1})
+
+// ===== 元组原生方法测试 =====
+// Tuple native methods tests
+
+function testTupleMethods() {
+    var tupl (1, 2, 3, 2, 4)
+    
+    var length tupl.length()
+    var includes tupl.includes(2)
+    var count tupl.count(2)
+    var indexOf tupl.indexOf(2)
+    var lastIndexOf tupl.lastIndexOf(2)
+    
+    // 高阶方法
+    var mapped tupl.map((x) => x * 2)
+    var filtered tupl.filter((x) => x > 2)
+    var found tupl.find((x) => x > 3)
+    var some tupl.some((x) => x > 3)
+    var every tupl.every((x) => x > 0)
+    
+    var joined tupl.join("-")
+    var sliced tupl.slice(1, 4)
+    
+    return {
+        length: length,
+        includes: includes,
+        count: count,
+        indexOf: indexOf,
+        lastIndexOf: lastIndexOf,
+        mapped: mapped,
+        filtered: filtered,
+        found: found,
+        some: some,
+        every: every,
+        joined: joined,
+        sliced: sliced
+    }
+}
+
+set tupleMethodsResult testTupleMethods()
+
+// ===== 元组解构测试 =====
+// Tuple destructuring tests
+
+set sourceTuple (1, 2, 3, 4, 5)
+set (first, second, ...rest) sourceTuple
+set (a, , c) sourceTuple  // 跳过第二个元素
+set (x = 0, y = 0) (10,)  // 带默认值
+
+// ===== 集合迭代测试 =====
+// Collection iteration tests
+
+// 数组迭代
+function iterateArray() {
+    var arr [1, 2, 3, 4, 5]
+    var results []
+    
+    for each item in arr {
+        add item * 2 to results
+    }
+    
+    return results
+}
+
+set arrayIteration iterateArray()
+
+// 元组迭代
+function iterateTuple() {
+    var tupl (1, 2, 3, 4, 5)
+    var results []
+    
+    for each item in tupl {
+        add item * 3 to results
+    }
+    
+    return results
+}
+
+set tupleIteration iterateTuple()
+
+// 对象属性迭代
+function iterateObjectProperties(obj) {
+    var results []
+    var keys obj.keys()
+    
+    for each key in keys {
+        var value obj[key]
+        add {key: key, value: value} to results
+    }
+    
+    return results
+}
+
+set objIteration iterateObjectProperties({a: 1, b: 2, c: 3})
+
+// ===== 复杂集合操作测试 =====
+// Complex collection operations tests
+
+// 多维数组操作
+function createMatrix(rows, cols, defaultValue = 0) {
+    var matrix []
+    
+    for i from 0 to rows - 1 {
+        var row []
+        for j from 0 to cols - 1 {
+            add defaultValue to row
+        }
+        add row to matrix
+    }
+    
+    return matrix
+}
+
+set matrix createMatrix(3, 3, 1)
+
+// 数组去重
+function uniqueArray(arr) {
+    var unique []
+    
+    for each item in arr {
+        if not (item is in unique) {
+            add item to unique
+        }
+    }
+    
+    return unique
+}
+
+set duplicateArray [1, 2, 2, 3, 3, 3, 4]
+set uniqueResult uniqueArray(duplicateArray)
+
+// 对象数组操作
+set users [
+    {name: "Alice", age: 25, department: "Engineering"},
+    {name: "Bob", age: 30, department: "Marketing"},
+    {name: "Charlie", age: 35, department: "Engineering"},
+    {name: "Diana", age: 28, department: "Sales"}
+]
+
+// 按部门分组
+function groupByDepartment(users) {
+    var groups {}
+    
+    for each user in users {
+        var dept user.department
+        if not groups.has(dept) {
+            groups.set(dept, [])
+        }
+        var deptArray groups.get(dept)
+        add user to deptArray
+    }
+    
+    return groups
+}
+
+set groupedUsers groupByDepartment(users)
+
+// 数据聚合
+function calculateStats(numbers) {
+    var sum numbers.reduce((acc, x) => acc + x, 0)
+    var count numbers.length()
+    var avg sum / count
+    var max numbers.reduce((acc, x) => x > acc ? x : acc, numbers[0])
+    var min numbers.reduce((acc, x) => x < acc ? x : acc, numbers[0])
+    
+    return {
+        sum: sum,
+        count: count,
+        average: avg,
+        max: max,
+        min: min
+    }
+}
+
+set numberStats calculateStats([10, 20, 30, 40, 50])
+
+// ===== 集合类型转换测试 =====
+// Collection type conversion tests
+
+// 数组转元组
+function arrayToTuple(arr) {
+    // 模拟转换（实际实现可能不同）
+    return (arr[0], arr[1], arr[2])
+}
+
+set convertedTuple arrayToTuple([1, 2, 3])
+
+// 元组转数组
+function tupleToArray(tupl) {
+    return tupl.values()
+}
+
+set convertedArray tupleToArray((1, 2, 3))
+
+// 对象转数组
+function objectToArray(obj) {
+    return obj.entries()
+}
+
+set objToArray objectToArray({a: 1, b: 2, c: 3})
+
+// 测试完成
+set collectionsTestCompleted true
+
+"Collections test completed successfully"

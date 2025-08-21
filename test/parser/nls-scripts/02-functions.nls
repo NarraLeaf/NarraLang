@@ -1,0 +1,376 @@
+// 02-functions.nls
+// Functions test script covering regular functions, lambdas, macro functions, and recursion
+// 函数测试脚本，涵盖普通函数、Lambda、宏函数、递归等
+
+// ===== 普通函数测试 =====
+// Regular function tests
+
+// 基本函数定义
+function add(a, b) {
+    return a + b
+}
+
+// 函数调用测试
+set sum add(5, 3)
+
+// 函数参数默认值
+function greet(name, greeting = "Hello") {
+    return greeting + ", " + name + "!"
+}
+
+set greeting1 greet("Alice")
+set greeting2 greet("Bob", "Hi")
+
+// 带扩展参数的函数
+function sum(...numbers) {
+    var total 0
+    
+    for each num in numbers {
+        add num to total
+    }
+    
+    return total
+}
+
+set totalSum sum(1, 2, 3, 4, 5)
+
+// 混合参数类型
+function processData(required, optional = "default", ...rest) {
+    var result {
+        required: required,
+        optional: optional,
+        rest: rest
+    }
+    return result
+}
+
+set processResult processData("req", "opt", 1, 2, 3)
+
+// ===== 函数作用域和变量测试 =====
+// Function scope and variables tests
+
+set globalVar "global"
+
+function scopeTest() {
+    var localVar "local"
+    var globalVar "shadowed"
+    
+    return {
+        local: localVar,
+        shadowed: globalVar
+    }
+}
+
+set scopeResult scopeTest()
+
+// 函数嵌套
+function outerFunction(x) {
+    var outerVar x * 2
+    
+    function innerFunction(y) {
+        return outerVar + y
+    }
+    
+    return innerFunction
+}
+
+set nestedFunction outerFunction(5)
+set nestedResult nestedFunction(3)
+
+// ===== 控制流在函数中的使用 =====
+// Control flow in functions
+
+function findMax(arr) {
+    var max arr[0]
+    
+    for each item in arr {
+        if item > max {
+            set max item
+        }
+    }
+    
+    return max
+}
+
+set maxValue findMax([3, 7, 2, 9, 1])
+
+// 带有早期返回的函数
+function findFirst(arr, target) {
+    for i from 0 to arr.length() - 1 {
+        if arr[i] = target {
+            return i
+        }
+    }
+    return -1
+}
+
+set foundIndex findFirst([1, 2, 3, 4, 5], 3)
+
+// 复杂条件控制流
+function processScore(score) {
+    if score >= 90 {
+        return "A"
+    } else if score >= 80 {
+        return "B"
+    } else if score >= 70 {
+        return "C"
+    } else if score >= 60 {
+        return "D"
+    } else {
+        return "F"
+    }
+}
+
+set grade processScore(85)
+
+// ===== 递归函数测试 =====
+// Recursive function tests
+
+// 阶乘函数
+function factorial(n) {
+    if n <= 1 {
+        return 1
+    }
+    return n * factorial(n - 1)
+}
+
+set fact5 factorial(5)
+
+// 斐波那契数列
+function fibonacci(n) {
+    if n <= 1 {
+        return n
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+set fib10 fibonacci(10)
+
+// 数组求和（递归版本）
+function sumArray(arr, index = 0) {
+    if index >= arr.length() {
+        return 0
+    }
+    return arr[index] + sumArray(arr, index + 1)
+}
+
+set recursiveSum sumArray([1, 2, 3, 4, 5])
+
+// ===== Lambda 表达式测试 =====
+// Lambda expression tests
+
+// 基本 lambda
+set addLambda (a, b) => a + b
+set lambdaResult addLambda(10, 20)
+
+// 单参数 lambda
+set square (x) => x * x
+set squareResult square(7)
+
+// 复杂 lambda 表达式
+set processNumbers (arr) => {
+    var result []
+    
+    for each num in arr {
+        if num % 2 = 0 {
+            add num * 2 to result
+        }
+    }
+    
+    return result
+}
+
+set processedNumbers processNumbers([1, 2, 3, 4, 5, 6])
+
+// 高阶函数使用 lambda
+function mapArray(arr, func) {
+    var result []
+    
+    for each item in arr {
+        add func(item) to result
+    }
+    
+    return result
+}
+
+set mappedArray mapArray([1, 2, 3], (x) => x * 3)
+
+function filterArray(arr, predicate) {
+    var result []
+    
+    for each item in arr {
+        if predicate(item) {
+            add item to result
+        }
+    }
+    
+    return result
+}
+
+set filteredArray filterArray([1, 2, 3, 4, 5], (x) => x > 3)
+
+// ===== 函数作为值传递测试 =====
+// Functions as values tests
+
+// 函数存储在变量中
+set mathOps {
+    add: (a, b) => a + b,
+    sub: (a, b) => a - b,
+    mul: (a, b) => a * b,
+    div: (a, b) => a / b
+}
+
+set addResult mathOps.add(15, 25)
+set mulResult mathOps.mul(8, 7)
+
+// 函数数组
+set operations [
+    (x) => x + 1,
+    (x) => x * 2,
+    (x) => x - 3
+]
+
+function applyOperations(value, ops) {
+    var result value
+    
+    for each op in ops {
+        set result op(result)
+    }
+    
+    return result
+}
+
+set chainResult applyOperations(5, operations)
+
+// ===== 宏函数测试 =====
+// Macro function tests
+
+// 基本宏函数
+function! setVariable(varName, value) {
+    set varName value
+}
+
+setVariable myMacroVar 42
+
+// 带修饰符的宏函数
+function! updateProfile(
+    character,
+    *age,
+    *money,
+    *inventory
+) {
+    if age {
+        // 模拟设置年龄
+        console.log("Setting age to " + age + " for " + character)
+    }
+    if money {
+        // 模拟设置金钱
+        console.log("Setting money to " + money + " for " + character)
+    }
+    if inventory {
+        // 模拟设置物品栏
+        console.log("Setting inventory for " + character)
+    }
+}
+
+updateProfile "John" age 25 money 1000
+updateProfile "Alice" inventory ["sword", "potion"]
+
+// 宏函数重载
+function! setValue(target) {
+    console.log("Setting single value: " + target)
+}
+
+function! setValue(target, value) {
+    console.log("Setting " + target + " to " + value)
+}
+
+setValue "test"
+setValue "variable" 123
+
+// 带副作用清理的宏函数
+set globalCounter 0
+
+function! incrementCounter(amount = 1) {
+    var oldValue globalCounter
+    add amount to globalCounter
+    
+    cleanup {
+        set globalCounter oldValue
+    }
+}
+
+incrementCounter 5
+
+// ===== 函数和数组/对象操作结合 =====
+// Functions combined with array/object operations
+
+// 数组处理函数
+function processUsers(users) {
+    var adults []
+    
+    for each user in users {
+        if user.age >= 18 {
+            add user to adults
+        }
+    }
+    
+    return adults
+}
+
+set userList [
+    {name: "Alice", age: 25},
+    {name: "Bob", age: 17},
+    {name: "Charlie", age: 30}
+]
+
+set adultUsers processUsers(userList)
+
+// 对象操作函数
+function mergeObjects(obj1, obj2) {
+    var result {...obj1}
+    
+    var keys obj2.keys()
+    for each key in keys {
+        set result[key] obj2[key]
+    }
+    
+    return result
+}
+
+set merged mergeObjects({a: 1, b: 2}, {b: 3, c: 4})
+
+// ===== 异常处理和边界测试 =====
+// Error handling and boundary tests
+
+function safeDiv(a, b) {
+    if b = 0 {
+        return null
+    }
+    return a / b
+}
+
+set safeDivResult1 safeDiv(10, 2)
+set safeDivResult2 safeDiv(10, 0)
+
+function validateInput(input) {
+    if input is null {
+        return "Input cannot be null"
+    }
+    if typeof(input) is not "number" {
+        return "Input must be a number"
+    }
+    if input < 0 {
+        return "Input must be positive"
+    }
+    return "Valid input"
+}
+
+set validation1 validateInput(5)
+set validation2 validateInput(null)
+set validation3 validateInput(-1)
+
+// 测试完成
+set functionsTestCompleted true
+
+"Functions test completed successfully"

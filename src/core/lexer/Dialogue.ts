@@ -58,7 +58,7 @@ export function parseDialogue(iterator: LexerIterator, parseTokenFn: ParseTokenF
             }
 
             if (iterator.getCurrentChar() !== "\"") {
-                return new LexerError(LexerErrorType.UnexpectedToken, "Unexpected token when parsing dialogue. Got '\"'", iterator.getIndex());
+                return new LexerError(LexerErrorType.UnexpectedToken, `Unexpected token when parsing dialogue. Got '${iterator.getCurrentChar()}'`, iterator.getIndex());
             }
 
             const string = parseStringTokens(iterator, { EOS: ["\n", "\r", "\""] }, parseTokenFn);
@@ -238,7 +238,7 @@ function validateMultiLineDialogue(text: string, braceIndex: number, iterator: L
     // Process each line within the braces
     while (k < text.length) {
         // Skip leading whitespace on the line
-        while (k < text.length && WhiteSpace.includes(text[k])) k++;
+        while (k < text.length && (WhiteSpace.includes(text[k]) || isNewLineAtIndex(iterator, k))) k++;
         
         // Check for closing brace
         if (text[k] === Operators[OperatorType.RightBrace]) {
@@ -278,7 +278,7 @@ function validateMultiLineDialogue(text: string, braceIndex: number, iterator: L
         // Skip the new line character(s)
         if (isNewLineAtIndex(iterator, k)) {
             // Handle \r\n case first
-            if (text[k] === '\r' && k + 1 < text.length && text[k + 1] === '\n') {
+            if (text[k] === "\r" && k + 1 < text.length && text[k + 1] === "\n") {
                 k += 2; // Skip both \r and \n
             } else {
                 k++; // Skip single newline character

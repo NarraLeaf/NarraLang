@@ -70,6 +70,7 @@ export function isBinaryOperator(op: OperatorType): boolean {
 export const UnaryPrefixOnlyOperators: OperatorType[] = [
     OperatorType.LogicalNot,   // !
     OperatorType.Ellipsis,     // ...
+    OperatorType.Not,          // not
 ];
 
 export function isUnaryPrefixOnlyOperator(op: OperatorType): boolean {

@@ -19,8 +19,8 @@ export { parseContinueStatement } from "./ContinueStatement";
 export { parseReturnStatement } from "./ReturnStatement";
 export { parseAwaitStatement } from "./AwaitStatement";
 export { parseBlockStatement, parseStatementBlock } from "./BlockStatement";
-export { tryParseDialogueStatement } from "./DialogueStatement";
-export { parseSugarOrExpressionStatement } from "./ExpressionStatement";
+export { createDialogueStatement } from "./DialogueStatement";
+export { parseSugarOrExpressionStatement, parseExpressionStatement } from "./ExpressionStatement";
 
 // Export statement types
 export * from "./Statement";

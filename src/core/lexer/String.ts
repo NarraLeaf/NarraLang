@@ -3,9 +3,9 @@ import { HexString } from "../utils/type";
 import { parseIdentifier } from "./Identifier";
 import { LexerError, LexerErrorType } from "./LexerError";
 import { LexerIterator } from "./LexerIterator";
-import { parseNumberLiteral } from "./Literal";
+import { parseNumberLiteral, parseBooleanLiteral } from "./Literal";
 import { EscapeCharacter, HexColorCharacter, HexDigitCharacter, IdentifierStartCharacter, LanguageCharacter, UnicodeCodePointCharacter, WhiteSpace } from "./Operator";
-import { EndOfFile, ParseTokenFn, type Tokens } from "./TokenType";
+import { EndOfFile, ParseTokenFn, type Tokens, TokenType } from "./TokenType";
 
 export enum StringTokenType {
     String,
@@ -67,7 +67,7 @@ const EscapeMap: Record<string, string> = {
 };
 
 export type StringTag = RawStringTag & {
-    properties: Record<string, string | number> | null,
+    properties: Record<string, string | number | boolean> | null,
     closed: boolean,
 };
 export type RawStringTag =
@@ -361,8 +361,8 @@ function getTagType(tagName: string): RawStringTag | null {
     return null;
 }
 
-function parseProperty(iterator: LexerIterator): Record<string, string | number> | LexerError {
-    const properties: Record<string, string | number> = {};
+function parseProperty(iterator: LexerIterator): Record<string, string | number | boolean> | LexerError {
+    const properties: Record<string, string | number | boolean> = {};
 
     while (!iterator.isDone()) {
         const currentChar = iterator.getCurrentChar();
@@ -393,8 +393,15 @@ function parseProperty(iterator: LexerIterator): Record<string, string | number>
                 iterator.next(); // skip "{"
             }
 
-            let parsedValue: number | string | null = parseNumberLiteral(iterator)?.value ?? null;
-            if (!parsedValue) {
+            let parsedValue: number | string | boolean | null = parseNumberLiteral(iterator)?.value ?? null;
+            if (parsedValue === null) {
+                // Try parsing boolean literal
+                const booleanToken = parseBooleanLiteral(iterator);
+                if (booleanToken && booleanToken.type === TokenType.BooleanLiteral) {
+                    parsedValue = booleanToken.value;
+                }
+            }
+            if (parsedValue === null) {
                 if (QuotationMarks.includes(iterator.getCurrentChar())) {
                     const quote = iterator.getCurrentChar();
                     const flowed = flowString(iterator, [quote], quote);
@@ -406,7 +413,7 @@ function parseProperty(iterator: LexerIterator): Record<string, string | number>
                     parsedValue = flowed;
                 }
             }
-            if (parsedValue === null) return new LexerError(LexerErrorType.StringParsingError, "The tag property value is not a number or string.", iterator.getIndex());
+            if (parsedValue === null) return new LexerError(LexerErrorType.StringParsingError, "The tag property value is not a literal.", iterator.getIndex());
 
             if (shoudClose) {
                 if (iterator.getCurrentChar() !== TagOperators[TagOperatorType.RightBrace]) {

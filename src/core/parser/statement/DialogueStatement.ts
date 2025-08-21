@@ -1,52 +1,68 @@
-import { ParserIterator } from "../ParserIterator";
-import { SugarCallStatementNode } from "./Statement";
-import { NodeType, ExpressionNode } from "../Node";
-import { OperatorType } from "@/core/lexer/Operator";
-import { ParserError, ParserErrorType } from "../ParserError";
-import { trace } from "../Trace";
-import { TokenType } from "@/core/lexer/TokenType";
+import { Tokens, TokensTypeOf, TokenType } from "@/core/lexer/TokenType";
 import { parseExpression } from "../expression/ParseExpression";
-import { ParseStatementOptions } from "./ParseStatement";
+import { parseRichString } from "../expression/parseRichString";
+import { NodeType } from "../Node";
+import { ParserError, ParserErrorType } from "../ParserError";
+import { createParserIterator } from "../ParserIterator";
+import { trace } from "../Trace";
+import { DialogueStatementNode } from "./Statement";
+import { NullExpression } from "../expression/helper";
 
-/**
- * Try to parse dialogue statement (Character: "text")
- */
-export function tryParseDialogueStatement(iterator: ParserIterator, _opts: Required<ParseStatementOptions>): SugarCallStatementNode | null {
-    const characterToken = iterator.getCurrentToken();
-    if (!characterToken || characterToken.type !== TokenType.Identifier) {
-        return null;
+export function createDialogueStatement(token: TokensTypeOf<TokenType.Dialogue> | TokensTypeOf<TokenType.MultiLineDialogue>): DialogueStatementNode {
+    if (token.type === TokenType.Dialogue) {
+        const { character, content } = token.value;
+        const characterName = parseExpression(createParserIterator(character));
+        if (!characterName) {
+            throw new ParserError(
+                ParserErrorType.ExpectedExpression,
+                "Expected character name after ':'",
+                token
+            );
+        }
+
+        const dialogue = parseRichString(content);
+
+        return {
+            type: NodeType.DialogueExpression,
+            character: characterName,
+            dialogue,
+            trace: trace(token.start, token.end),
+        };
+    } else if (token.type === TokenType.MultiLineDialogue) {
+        const { character, content } = token.value;
+        const characterName = parseExpression(createParserIterator(character));
+        if (!characterName) {
+            throw new ParserError(
+                ParserErrorType.ExpectedExpression,
+                "Expected character name after ':'",
+                token
+            );
+        }
+
+        const dialogue = content.map(parseRichString);
+
+        return {
+            type: NodeType.DialogueExpression,
+            character: characterName,
+            dialogue,
+            trace: trace(token.start, token.end),
+        };
     }
 
-    // Look ahead for colon
-    const colonToken = iterator.peekToken(1);
-    if (!colonToken || colonToken.type !== TokenType.Operator || colonToken.value !== OperatorType.Colon) {
-        return null;
-    }
+    throw new ParserError(
+        ParserErrorType.UnexpectedToken,
+        "Expected dialogue or multi-line dialogue, got unknown token type: " + ((token as Tokens)?.type ?? "unknown"),
+        token
+    );
+}
 
-    // Parse as dialogue statement
-    iterator.popToken(); // consume character name
-    iterator.popToken(); // consume colon
-
-    // Parse dialogue text expression
-    const text = parseExpression(iterator, {
-        stopOn: [{ type: TokenType.NewLine }]
-    });
-    if (!text) {
-        throw new ParserError(
-            ParserErrorType.ExpectedExpression,
-            "Expected dialogue text after ':'",
-            iterator.getCurrentToken()
-        );
-    }
+export function createNarrativeDialogue(token: TokensTypeOf<TokenType.String>): DialogueStatementNode {
+    const parsed = parseRichString(token.value);
 
     return {
-        type: NodeType.SugarCallStatement,
-        name: "dialogue",
-        args: [
-            { type: NodeType.Literal, value: characterToken.value, trace: trace(characterToken.start, characterToken.end) } as ExpressionNode,
-            text
-        ],
-        modifiers: {},
-        trace: trace(characterToken.start, text.trace.end),
+        type: NodeType.DialogueExpression,
+        character: NullExpression(token.start),
+        dialogue: parsed,
+        trace: trace(token.start, token.end),
     };
 }

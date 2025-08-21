@@ -1,0 +1,189 @@
+// 01-basic-syntax.nls
+// Basic syntax test script covering variables, data types, and operators
+// 基础语法测试脚本，涵盖变量、数据类型和运算符
+
+// ===== 变量声明测试 =====
+// Variable declaration tests
+
+// 基本变量声明
+set basicVar 42
+set stringVar "Hello World"
+set boolVar true
+set nullVar null
+
+// 常量声明
+const PI 3.14159
+const APP_NAME "NarraLang Test"
+const MAX_PLAYERS 4
+
+// 多变量声明
+set x 1,
+    y 2,
+    z 3
+
+// ===== 数据类型测试 =====
+// Data types tests
+
+// 数字类型
+set intNumber 256
+set floatNumber 3.14
+set sciNotation 1e8
+set decimalVariants1 .256
+set decimalVariants2 256.
+set decimalVariants3 0.256
+
+// 字符串类型
+set singleQuote 'single quote string'
+set doubleQuote "double quote string"
+set emptyString ""
+
+// 布尔类型
+set isTrue true
+set isFalse false
+
+// null类型
+set nullValue null
+
+// 数组类型
+set emptyArray []
+set numberArray [1, 2, 3, 4, 5]
+set mixedArray [1, "hello", true, null]
+set nestedArray [[1, 2], [3, 4], [5, 6]]
+
+// 对象类型
+set emptyObject {}
+set simpleObject {name: "John", age: 25}
+set nestedObject {
+    user: {
+        name: "Alice",
+        profile: {
+            age: 30,
+            city: "Beijing"
+        }
+    },
+    settings: {
+        theme: "dark",
+        language: "zh"
+    }
+}
+
+// 元组类型
+set singleElementTuple (1,)
+set numberTuple (1, 2, 3)
+set mixedTuple (1, "hello", true)
+set nestedTuple ((1, 2), (3, 4))
+
+// ===== 运算符测试 =====
+// Operators tests
+
+// 算术运算符
+set addition 5 + 3
+set subtraction 10 - 4
+set multiplication 6 * 7
+set division 15 / 3
+set modulo 17 % 5
+set exponentiation 2 ** 3
+
+// 比较运算符
+set strictEqual 5 = 5
+set strictNotEqual 5 != 3
+set looseEqual 5 is 5
+set looseNotEqual 5 is not 3
+set greaterThan 10 > 5
+set greaterOrEqual 10 >= 10
+set lessThan 3 < 8
+set lessOrEqual 5 <= 5
+
+// 自然语言比较运算符
+set naturalGreater 10 is greater than 5
+set naturalGreaterEqual 10 is greater than or equal to 10
+set naturalLess 3 is less than 8
+set naturalLessEqual 5 is less than or equal to 5
+set naturalEqual 5 is equal to 5
+set naturalNotEqual 5 is not equal to 3
+
+// 逻辑运算符
+set logicalAnd true and false
+set logicalOr true or false
+set logicalNot not true
+set logicalNotSymbol !false
+
+// 空值合并运算符
+set nullCoalescing null ?? "default value"
+set nonNullCoalescing "actual value" ?? "default value"
+
+// ===== 表达式计算测试 =====
+// Expression evaluation tests
+
+// 复杂算术表达式
+set complexMath (5 + 3) * 2 - 1
+set precedenceTest 2 + 3 * 4
+set parenthesesTest (2 + 3) * 4
+
+// 链式比较
+set chainComparison 1 < 2 and 2 < 3
+set mixedLogical true or false and true
+
+// 三目运算符
+set ternaryOperator 5 > 3 ? "greater" : "less"
+set ternaryOperatorAlt "greater" if 5 > 3 else "less"
+
+// ===== 变量重新赋值测试 =====
+// Variable reassignment tests
+
+set counter 0
+set counter counter + 1
+set counter counter * 2
+
+// ===== 字符串插值测试 =====
+// String interpolation tests
+
+set playerName "Alice"
+set playerLevel 15
+set interpolatedString "Player {playerName} is level {playerLevel}"
+set complexInterpolation "Player {playerName} needs {100 - playerLevel * 2} XP to next level"
+
+// ===== 类型转换和默认值测试 =====
+// Type conversion and default value tests
+
+set undefinedVar
+set defaultValue undefinedVar ?? "default"
+set scoreWithDefault counter ?? 0
+
+// ===== 注释测试 =====
+// Comments test
+
+// 这是单行注释
+set commentedVar 42 // 行尾注释
+
+/* 
+   这是多行注释
+   可以跨越多行
+*/
+set multilineCommented "value"
+
+// ===== 基础语法糖测试 =====
+// Basic syntax sugar tests
+
+// 数学运算语法糖
+set mathVar 10
+add 5 to mathVar // mathVar = 15
+sub 3 from mathVar // mathVar = 12
+mul mathVar by 2 // mathVar = 24
+div mathVar by 3 // mathVar = 8
+
+// ===== 标识符和关键字测试 =====
+// Identifier and keyword tests
+
+// 有效标识符
+set validIdentifier1 "value"
+set _underscore "value"
+set camelCase "value"
+set snake_case "value"
+set identifier123 "value"
+set 中文变量 "unicode identifier"
+
+// 测试结束标记
+set testCompleted true
+
+"Basic syntax test completed successfully"
