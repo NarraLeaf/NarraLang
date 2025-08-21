@@ -23,6 +23,7 @@ import {
     TupleExpressionNode,
     StringExpressionNode
 } from '../../src/core/parser/expression/Expression';
+import { parseStatement } from '../../src/core/parser/statement';
 
 describe('Basic Expression Parser Tests', () => {
     

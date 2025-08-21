@@ -103,6 +103,12 @@ interface BlockStatementNode extends StatementNode {
     body: StatementNode[];
 }
 
+interface DialogueStatementNode extends StatementNode {
+    type: NodeType.DialogueExpression;
+    character: string;
+    dialogue: string;
+}
+
 export {
     VariableDeclarationNode,
     LocalDeclarationNode,

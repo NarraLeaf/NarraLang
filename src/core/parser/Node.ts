@@ -42,8 +42,10 @@ export enum NodeType {
     ObjectExpression = "ObjectExpression",         // {key: value}
     TupleExpression = "TupleExpression",           // (1, 2, 3)
     StringExpression = "StringExpression",         // rich text
+    DialogueExpression = "DialogueExpression",     // character: "text"
     
     RestExpression = "RestExpression",             // ...a
+
 
     Module = "Module",
 }

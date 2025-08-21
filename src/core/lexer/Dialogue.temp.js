@@ -1,78 +1,54 @@
-import { isNewLine, isNewLineAtIndex } from "./Comment";
-import { LexerError, LexerErrorType } from "./LexerError";
-import { LexerIterator, createLexerIterator } from "./LexerIterator";
-import { Operators, OperatorType, WhiteSpace } from "./Operator";
-import { parseStringTokens, StringToken } from "./String";
-import { parseToken } from "./Token";
-import { ParseTokenFn, Tokens, TokenTrace, TokenType } from "./TokenType";
-
-export type DialogueToken = {
-    character: Tokens[];
-    content: StringToken[];
-};
-export type MultiLineDialogueToken = {
-    character: Tokens[];
-    content: StringToken[][];
-};
-
-export function parseDialogue(iterator: LexerIterator, parseTokenFn: ParseTokenFn): {
-    type: TokenType.Dialogue;
-    value: DialogueToken;
-} & TokenTrace | {
-    type: TokenType.MultiLineDialogue;
-    value: MultiLineDialogueToken;
-} & TokenTrace | LexerError | null {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseDialogue = parseDialogue;
+exports.parseCharacterName = parseCharacterName;
+exports.isDialogue = isDialogue;
+const Comment_1 = require("./Comment");
+const LexerError_1 = require("./LexerError");
+const LexerIterator_1 = require("./LexerIterator");
+const Operator_1 = require("./Operator");
+const String_1 = require("./String");
+const Token_1 = require("./Token");
+const TokenType_1 = require("./TokenType");
+function parseDialogue(iterator, parseTokenFn) {
     if (!isDialogue(iterator)) {
         return null;
     }
-
     const startIndex = iterator.getIndex();
     const character = parseCharacterName(iterator, parseTokenFn);
-    if (LexerError.isLexerError(character)) {
+    if (LexerError_1.LexerError.isLexerError(character)) {
         return character;
     }
-
     iterator.skipWhiteSpace(); // skip whitespace before the dialogue content
-
-    if (iterator.getCurrentChar() === Operators[OperatorType.LeftBrace]) {
-        const content: StringToken[][] = [];
-
+    if (iterator.getCurrentChar() === Operator_1.Operators[Operator_1.OperatorType.LeftBrace]) {
+        const content = [];
         iterator.next(); // skip "{"
-
         while (!iterator.isDone()) {
             const currentChar = iterator.getCurrentChar();
-            if (WhiteSpace.includes(currentChar)) {
+            if (Operator_1.WhiteSpace.includes(currentChar)) {
                 iterator.next();
                 continue;
             }
-
-            if (currentChar === Operators[OperatorType.RightBrace]) {
+            if (currentChar === Operator_1.Operators[Operator_1.OperatorType.RightBrace]) {
                 iterator.next(); // skip "}"
-
                 break;
             }
-
-            if (isNewLine(iterator)) {
+            if ((0, Comment_1.isNewLine)(iterator)) {
                 iterator.next(); // skip new line
                 continue;
             }
-
             if (iterator.getCurrentChar() !== "\"") {
-                return new LexerError(LexerErrorType.UnexpectedToken, "Unexpected token when parsing dialogue. Got '\"'", iterator.getIndex());
+                return new LexerError_1.LexerError(LexerError_1.LexerErrorType.UnexpectedToken, "Unexpected token when parsing dialogue. Got '\"'", iterator.getIndex());
             }
-
-            const string = parseStringTokens(iterator, { EOS: ["\n", "\r", "\""] }, parseTokenFn);
-            if (LexerError.isLexerError(string)) {
+            const string = (0, String_1.parseStringTokens)(iterator, { EOS: ["\n", "\r", "\""] }, parseTokenFn);
+            if (LexerError_1.LexerError.isLexerError(string)) {
                 return string;
             }
-            
             iterator.next(); // skip EOS
-
             content.push(string);
         }
-
         return {
-            type: TokenType.MultiLineDialogue,
+            type: TokenType_1.TokenType.MultiLineDialogue,
             value: {
                 character,
                 content,
@@ -81,25 +57,22 @@ export function parseDialogue(iterator: LexerIterator, parseTokenFn: ParseTokenF
             end: iterator.getIndex() - 1,
         };
     }
-
     if (iterator.getCurrentChar() === "\"") {
         iterator.next(); // skip "
-    } else {
-        return new LexerError(LexerErrorType.UnexpectedToken, "Unexpected token when parsing dialogue.", iterator.getIndex());
     }
-
-    const string = parseStringTokens(iterator, { EOS: ["\n", "\r", "\""] }, parseTokenFn);
+    else {
+        return new LexerError_1.LexerError(LexerError_1.LexerErrorType.UnexpectedToken, "Unexpected token when parsing dialogue.", iterator.getIndex());
+    }
+    const string = (0, String_1.parseStringTokens)(iterator, { EOS: ["\n", "\r", "\""] }, parseTokenFn);
     if (!string) {
-        return new LexerError(LexerErrorType.StringParsingError, "Failed to parse string for dialogue.", iterator.getIndex());
+        return new LexerError_1.LexerError(LexerError_1.LexerErrorType.StringParsingError, "Failed to parse string for dialogue.", iterator.getIndex());
     }
-    if (LexerError.isLexerError(string)) {
+    if (LexerError_1.LexerError.isLexerError(string)) {
         return string;
     }
-
     iterator.next(); // skip EOS
-
     return {
-        type: TokenType.Dialogue,
+        type: TokenType_1.TokenType.Dialogue,
         value: {
             character,
             content: string,
@@ -108,39 +81,34 @@ export function parseDialogue(iterator: LexerIterator, parseTokenFn: ParseTokenF
         end: iterator.getIndex() - 1,
     };
 }
-
-export function parseCharacterName(iterator: LexerIterator, parseTokenFn: ParseTokenFn): Tokens[] | LexerError {
-    const charNameExpression: Tokens[] = [];
-
+function parseCharacterName(iterator, parseTokenFn) {
+    const charNameExpression = [];
     while (!iterator.isDone()) {
         const currentChar = iterator.getCurrentChar();
-        if (WhiteSpace.includes(currentChar)) {
+        if (Operator_1.WhiteSpace.includes(currentChar)) {
             iterator.next();
             continue;
         }
-        if (isNewLine(iterator)) {
-            return new LexerError(LexerErrorType.UnexpectedNewLine, "Unexpected new line. This should not happen.", iterator.getIndex());
+        if ((0, Comment_1.isNewLine)(iterator)) {
+            return new LexerError_1.LexerError(LexerError_1.LexerErrorType.UnexpectedNewLine, "Unexpected new line. This should not happen.", iterator.getIndex());
         }
-        if (currentChar === Operators[OperatorType.Colon]) {
+        if (currentChar === Operator_1.Operators[Operator_1.OperatorType.Colon]) {
             iterator.next(); // skip ":"
             break;
         }
-
         const token = parseTokenFn(iterator, { allowDialogue: false });
-        if (LexerError.isLexerError(token)) {
+        if (LexerError_1.LexerError.isLexerError(token)) {
             return token;
-        } else if (token !== null) {
+        }
+        else if (token !== null) {
             charNameExpression.push(token);
         }
     }
-
     return charNameExpression;
 }
-
-export function isDialogue(iterator: LexerIterator): boolean {
+function isDialogue(iterator) {
     const startIndex = iterator.getIndex();
     const text = iterator.getRaw();
-
     // check if the text is on its own line
     let lineStartIndex = startIndex;
     while (lineStartIndex > 0) {
@@ -150,10 +118,9 @@ export function isDialogue(iterator: LexerIterator): boolean {
         }
         lineStartIndex--;
     }
-
     let hasNonWhitespaceBefore = false;
     for (let i = lineStartIndex; i < startIndex; i++) {
-        if (!WhiteSpace.includes(text[i])) {
+        if (!Operator_1.WhiteSpace.includes(text[i])) {
             hasNonWhitespaceBefore = true;
             break;
         }
@@ -161,15 +128,14 @@ export function isDialogue(iterator: LexerIterator): boolean {
     if (hasNonWhitespaceBefore) {
         return false;
     }
-
     // Find the colon position
     let colonIndex = -1;
     for (let i = startIndex; i < text.length; i++) {
         const char = text[i];
-        if (isNewLineAtIndex(iterator, i)) {
+        if ((0, Comment_1.isNewLineAtIndex)(iterator, i)) {
             return false;
         }
-        if (char === Operators[OperatorType.Colon]) {
+        if (char === Operator_1.Operators[Operator_1.OperatorType.Colon]) {
             colonIndex = i;
             break;
         }
@@ -177,36 +143,35 @@ export function isDialogue(iterator: LexerIterator): boolean {
     if (colonIndex === -1 || colonIndex >= text.length - 1) {
         return false;
     }
-
     // Extra check: the content after the colon must be a double quote or { new line double quote
     let j = colonIndex + 1;
-    while (j < text.length && WhiteSpace.includes(text[j])) j++;
+    while (j < text.length && Operator_1.WhiteSpace.includes(text[j]))
+        j++;
     const afterColon = text[j];
-
     if (afterColon === "\"") {
         // OK: single line dialogue
-    } else if (afterColon === "{") {
+    }
+    else if (afterColon === "{") {
         // Validate multi-line dialogue format
         if (!validateMultiLineDialogue(text, j, iterator)) {
             return false;
         }
-    } else {
+    }
+    else {
         return false; // not a valid dialogue start
     }
-
     // Check if there's exactly one token before the colon
     const charNameText = text.slice(startIndex, colonIndex);
-    const tempIterator = createLexerIterator(charNameText);
-
+    const tempIterator = (0, LexerIterator_1.createLexerIterator)(charNameText);
     let tokenCount = 0;
     while (!tempIterator.isDone()) {
         const currentChar = tempIterator.getCurrentChar();
-        if (WhiteSpace.includes(currentChar)) {
+        if (Operator_1.WhiteSpace.includes(currentChar)) {
             tempIterator.next();
             continue;
         }
-        const token = parseToken(tempIterator, { allowDialogue: false });
-        if (LexerError.isLexerError(token)) {
+        const token = (0, Token_1.parseToken)(tempIterator, { allowDialogue: false });
+        if (LexerError_1.LexerError.isLexerError(token)) {
             return false;
         }
         if (token === null) {
@@ -217,44 +182,38 @@ export function isDialogue(iterator: LexerIterator): boolean {
             return false;
         }
     }
-
     return tokenCount === 1;
 }
-
 /**
  * Validates multi-line dialogue format to ensure each line only contains one pair of double quotes
  * and no other symbols outside the quotes (except whitespace)
  */
-function validateMultiLineDialogue(text: string, braceIndex: number, iterator: LexerIterator): boolean {
+function validateMultiLineDialogue(text, braceIndex, iterator) {
     let k = braceIndex + 1;
-    
     // Skip whitespace after opening brace
-    while (k < text.length && WhiteSpace.includes(text[k])) k++;
-    
+    while (k < text.length && Operator_1.WhiteSpace.includes(text[k]))
+        k++;
     // Must be followed by a new line
-    if (!isNewLineAtIndex(iterator, k)) return false;
+    if (!(0, Comment_1.isNewLineAtIndex)(iterator, k))
+        return false;
     k++;
-    
     // Process each line within the braces
     while (k < text.length) {
         // Skip leading whitespace on the line
-        while (k < text.length && WhiteSpace.includes(text[k])) k++;
-        
+        while (k < text.length && Operator_1.WhiteSpace.includes(text[k]))
+            k++;
         // Check for closing brace
-        if (text[k] === Operators[OperatorType.RightBrace]) {
+        if (text[k] === Operator_1.Operators[Operator_1.OperatorType.RightBrace]) {
             break; // Valid end of multi-line dialogue
         }
-        
         // Each content line must start with a double quote
         if (text[k] !== "\"") {
             return false;
         }
-        
         k++; // Skip opening quote
         let foundClosingQuote = false;
-        
         // Find the closing quote on this line
-        while (k < text.length && !isNewLineAtIndex(iterator, k)) {
+        while (k < text.length && !(0, Comment_1.isNewLineAtIndex)(iterator, k)) {
             if (text[k] === "\"") {
                 foundClosingQuote = true;
                 k++; // Skip closing quote
@@ -262,29 +221,24 @@ function validateMultiLineDialogue(text: string, braceIndex: number, iterator: L
             }
             k++;
         }
-        
         if (!foundClosingQuote) {
             return false; // No closing quote found on this line
         }
-        
         // Validate that there are no non-whitespace characters after the closing quote on this line
-        while (k < text.length && !isNewLineAtIndex(iterator, k)) {
-            if (!WhiteSpace.includes(text[k])) {
+        while (k < text.length && !(0, Comment_1.isNewLineAtIndex)(iterator, k)) {
+            if (!Operator_1.WhiteSpace.includes(text[k])) {
                 return false; // Found non-whitespace character after closing quote
             }
             k++;
         }
-        
         // Skip the new line character(s)
-        if (isNewLineAtIndex(iterator, k)) {
-            // Handle \r\n case first
-            if (text[k] === '\r' && k + 1 < text.length && text[k + 1] === '\n') {
-                k += 2; // Skip both \r and \n
-            } else {
-                k++; // Skip single newline character
+        if ((0, Comment_1.isNewLineAtIndex)(iterator, k)) {
+            k++;
+            // Handle \r\n case
+            if (k < text.length && text[k - 1] === '\r' && text[k] === '\n') {
+                k++;
             }
         }
     }
-    
     return true;
 }

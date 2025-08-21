@@ -41,9 +41,5 @@ export function isNewLineAtIndex(iterator: LexerIterator, index: number): boolea
     }
     
     const currentChar = iterator.getCharAt(index);
-    return (
-        currentChar === "\r"
-        ? index + 1 < text.length && iterator.getCharAt(index + 1) === "\n"
-        : currentChar === "\n"
-    );
+    return currentChar === "\r" || currentChar === "\n";
 }
