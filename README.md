@@ -26,12 +26,12 @@ character John "John"
 image John "john.png" pos [5, 10] scale 1.0
 
 scene Morning {
-  John: Hello, Sensei.
-  John: It's a new day. Let's do our best!
+  John: "Hello, Sensei."
+  John: "It's a new day. Let's do our best!"
 
   John char "john-happy.png"
 
-  John: Let's start with <b>the basics</b>.
+  John: "Let's start with <b>the basics</b>."
 }
 ```
 
