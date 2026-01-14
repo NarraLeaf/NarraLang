@@ -21,6 +21,7 @@ export { parseAwaitStatement } from "./AwaitStatement";
 export { parseBlockStatement, parseStatementBlock } from "./BlockStatement";
 export { createDialogueStatement } from "./DialogueStatement";
 export { parseSugarOrExpressionStatement, parseExpressionStatement } from "./ExpressionStatement";
+export { parseSugarCallStatement, couldBeSugarCall } from "./SugarCallStatement";
 
 // Export statement types
 export * from "./Statement";

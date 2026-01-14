@@ -4,10 +4,19 @@ import { ParsedNode } from "./Node";
 
 type ParserIteratorResult = [node: ParsedNode, token: Tokens];
 
+/**
+ * Saved parser state for backtracking
+ */
+export type ParserIteratorState = {
+    index: number;
+    resultLength: number;
+};
+
 export type ParserIterator = {
     getParsed(): ParserIteratorResult[];
     getContext(): ParserContextStack;
     getRemainingTokens(): Tokens[];
+    getPreviousToken(): Tokens | null;
 
     push(node: ParsedNode, token: Tokens): void;
     popParsed(): ParserIteratorResult | null;
@@ -22,6 +31,10 @@ export type ParserIterator = {
 
     getResult(): ParsedNode[];
     isDone(): boolean;
+
+    // Backtracking support for lookahead
+    save(): ParserIteratorState;
+    restore(state: ParserIteratorState): void;
 
     // utils
     skipNewLine(): void;
@@ -135,10 +148,40 @@ export function createParserIterator(tokens: Tokens[]): ParserIterator {
         }
     };
 
+    const getPreviousToken = () => {
+        if (index <= 0) {
+            return null;
+        }
+        return cache[index - 1] ?? null;
+    };
+
+    /**
+     * Save current parser state for backtracking
+     * Returns a state object that can be used with restore()
+     */
+    const save = (): ParserIteratorState => {
+        return {
+            index,
+            resultLength: result.length,
+        };
+    };
+
+    /**
+     * Restore parser state from a saved state
+     * This allows backtracking when parsing fails or lookahead is needed
+     */
+    const restore = (state: ParserIteratorState) => {
+        index = state.index;
+        currentToken = cache[index] ?? null;
+        // Truncate result array to saved length
+        result.length = state.resultLength;
+    };
+
     return {
         getParsed,
         getContext,
         getRemainingTokens,
+        getPreviousToken,
         push,
         popParsed,
         popParsedIf,
@@ -150,6 +193,8 @@ export function createParserIterator(tokens: Tokens[]): ParserIterator {
         consume,
         getResult,
         isDone,
+        save,
+        restore,
         skipNewLine,
     };
 }

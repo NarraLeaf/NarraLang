@@ -110,19 +110,29 @@ export function parseVariableDeclaration(iterator: ParserIterator): VariableDecl
         }
         declarations.push({ left, value });
 
-        // Consume the comma
-        const comma = iterator.popToken();
-        if (comma && comma.type === TokenType.Operator && comma.value === OperatorType.Comma) {
+        // Check for continuation or end
+        const nextToken = iterator.getCurrentToken();
+        if (!nextToken || nextToken.type === TokenType.NewLine) {
+            // End of declaration(s)
+            if (nextToken) {
+                end = nextToken.end ?? null;
+            }
+            break;
+        }
+        
+        // Consume the comma if present
+        if (nextToken.type === TokenType.Operator && nextToken.value === OperatorType.Comma) {
+            const comma = iterator.popToken()!;
             end = comma.end ?? null;
-
             iterator.skipNewLine();
             continue;
         }
 
+        // Unexpected token
         throw new ParserError(
             ParserErrorType.UnexpectedToken,
             "Expected ',' or line break between declarations",
-        ).setPos(iterator.getCurrentToken());
+        ).setPos(nextToken);
     }
 
     const start = currentToken.start;

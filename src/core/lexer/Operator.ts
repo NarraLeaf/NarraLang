@@ -124,7 +124,7 @@ export const OperatorBPMap: Record<
     [OperatorType.LogicalNotEqual]: 40,
     // Logical operators
     [OperatorType.And]: 35,
-    [OperatorType.Nullish]: 33,
+    [OperatorType.Nullish]: 32,
     [OperatorType.Or]: 30,
 
     // Ternary has very low precedence

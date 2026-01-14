@@ -7,7 +7,8 @@ import { IdentifierNode, LiteralNode, StringExpressionNode } from "./Expression"
 import { parseArrayPattern, parseArrayLiteral } from "./parseArray";
 import { parseObjectPattern, parseObjectLiteral } from "./parseObject";
 import { parseBrackets, parseTuplePattern } from "./parseTuple";
-import { parseRestExpression, parseUnaryLogicalNot, parseUnaryMinus } from "./parseUnary";
+import { parseRestExpression } from "./parseUnary";
+import { parseUnaryLogicalNot, parseUnaryMinus } from "./parseUnary";
 import { Atoms, ParseExpressionOptions, resetBP } from "./shared";
 import { parseRichString } from "./parseRichString";
 import { KeywordType } from "@/core/lexer/Keyword";
@@ -24,6 +25,11 @@ export function parsePrimary(
 
     // Identifier-only mode (pattern placeholder).
     if (options.identifier === true) {
+        // Rest expression: ...rest (allowed in patterns)
+        if (t.type === TokenType.Operator && t.value === OperatorType.Ellipsis) {
+            return parseRestExpression(iterator, options);
+        }
+
         // Tuple pattern: (p1, p2, ...)
         if (t.type === TokenType.Operator && t.value === OperatorType.LeftParenthesis) {
             return parseTuplePattern(iterator, options);
@@ -50,7 +56,7 @@ export function parsePrimary(
             return node;
         }
 
-        throw new ParserError(ParserErrorType.ExpectedIdentifier, "Expected pattern (identifier/tuple/array/object)", t);
+        throw new ParserError(ParserErrorType.ExpectedIdentifier, "Expected pattern (identifier/tuple/array/object/rest)", t);
     }
 
     if (maybeLambdaExpression(iterator, options)) {
