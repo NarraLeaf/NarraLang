@@ -14,6 +14,7 @@ const external = [];
 const alias = {
   '@': './src',
   '@core': './src/core',
+  '@runtime': './src/runtime',
 };
 
 const common = {
@@ -42,6 +43,24 @@ Promise.all([
     external,
     format: 'cjs',
     outfile: 'dist/index.cjs',
+    sourcemap: isDev,
+    target: 'node22'
+  }),
+  esbuild.build({
+    ...common,
+    entryPoints: ['src/runtime/index.runtime.ts'],
+    external,
+    format: 'esm',
+    outfile: 'dist/runtime.mjs',
+    sourcemap: isDev,
+    target: 'node22'
+  }),
+  esbuild.build({
+    ...common,
+    entryPoints: ['src/runtime/index.runtime.ts'],
+    external,
+    format: 'cjs',
+    outfile: 'dist/runtime.cjs',
     sourcemap: isDev,
     target: 'node22'
   }),

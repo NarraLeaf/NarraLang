@@ -12,6 +12,11 @@
             "types": "./dist/index.d.ts",
             "import": "./dist/index.mjs",
             "require": "./dist/index.cjs"
+        },
+        "runtime": {
+            "types": "./dist/runtime.d.ts",
+            "import": "./dist/runtime.mjs",
+            "require": "./dist/runtime.cjs"
         }
     },
     "scripts": {
@@ -38,6 +43,9 @@
         "nvl",
         "dsl"
     ],
+    "peerDependencies": {
+        "narraleaf-react": "^0.8.7"
+    },
     "devDependencies": {
         "@types/jest": "^30.0.0",
         "@types/node": "^20.11.18",
@@ -46,7 +54,7 @@
         "esbuild": "^0.25.6",
         "eslint": "^9.31.0",
         "jest": "^30.0.5",
-        "narraleaf-react": "^0.7.0",
+        "narraleaf-react": "^0.8.7",
         "ts-jest": "^29.4.1",
         "ts-node": "^10.9.2",
         "tsc-alias": "^1.8.16",

@@ -63,12 +63,3 @@ export function parse(tokens: Tokens[], options?: ParseOptions): ParseResult {
         createError,
     };
 }
-
-/**
- * Simple parse function that returns only the AST (backward compatibility)
- * @param tokens Array of tokens to parse
- * @returns Parsed AST nodes
- */
-export function parseSimple(tokens: Tokens[]): ParsedNode[] {
-    return parse(tokens).nodes;
-}
