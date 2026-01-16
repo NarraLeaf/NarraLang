@@ -2,7 +2,7 @@ import { LiveGame, Namespace } from "narraleaf-react";
 import { ModuleRuntime } from "./Module";
 import { SceneRuntime } from "./SceneRuntime";
 import { Scope, ScopeType, Variable, VariableType, VariableSearchResult } from "./Variables";
-
+import { BaseDataType } from "./Data";
 
 export class ModuleScope extends Scope {
     private moduleName: string;
@@ -40,27 +40,29 @@ export class ModuleScope extends Scope {
         return this.scenes.get(name) ?? null;
     }
 
-    protected readVar(name: string, variable: Variable): unknown {
+    protected readVar(name: string, variable: Variable): BaseDataType {
         if (variable.type === VariableType.Module) {
             return this.getModule(name) ?? null;
         }
         if (variable.type === VariableType.Scene) {
             return this.getScene(name) ?? null;
         }
-        return this.getNamespace().get(this.prefix(name));
+        return this.getNamespace().get(this.prefixModule(name));
     }
 
-    protected writeVar(name: string, variable: Variable, value: unknown): void {
+    protected writeVar(name: string, variable: Variable, value: BaseDataType): void {
         if (!this.isVarMutable(variable)) {
             throw new Error(`Variable ${name} is not mutable`);
         }
-        this.getNamespace().set(this.prefix(name), value);
+        this.getNamespace().set(this.prefixModule(name), value);
     }
 
     protected createVar(name: string, variable: Variable): void {
         if (this.variables.has(name)) {
             throw new Error(`Variable ${name} already declared`);
         }
+        this.asserts(name, variable, [VariableType.Module, VariableType.Scene, VariableType.Const, VariableType.Set]);
+
         this.variables.set(name, variable);
     }
 
@@ -79,15 +81,19 @@ export class ModuleScope extends Scope {
 
     private initialize() {
         const storable = this.liveGame.getStorable();
-        if (!storable.hasNamespace(this.prefix(this.moduleName))) {
-            const namespace = new Namespace<Record<string, unknown>>(this.prefix(this.moduleName), {});
+        if (!storable.hasNamespace(this.prefixModule(this.moduleName))) {
+            const namespace = new Namespace<Record<string, BaseDataType>>(this.prefixModule(this.moduleName), {});
             storable.addNamespace(namespace);
         }
     }
 
-    private getNamespace(): Namespace<Record<string, unknown>> {
+    private getNamespace(): Namespace<Record<string, BaseDataType>> {
         const storable = this.liveGame.getStorable();
-        const namespace = storable.getNamespace<Record<string, unknown>>(this.prefix(this.moduleName));
+        const namespace = storable.getNamespace<Record<string, BaseDataType>>(this.prefixModule(this.moduleName));
         return namespace;
+    }
+
+    private prefixModule(name: string): string {
+        return `_[${this.type}]_${name}`;
     }
 }

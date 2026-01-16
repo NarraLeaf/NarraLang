@@ -1,4 +1,4 @@
-import { Storable } from "narraleaf-react";
+import { BaseDataType } from "./Data";
 
 export enum VariableType {
     Const = "const",
@@ -24,7 +24,7 @@ export type VariableSearchResult = {
 export type VariableData = {
     variable: Variable;
     scope: Scope;
-    data: unknown;
+    data: BaseDataType;
 };
 
 export abstract class Scope {
@@ -100,7 +100,7 @@ export abstract class Scope {
      * @param value - The new value to assign to the variable
      * @throws Error if the variable does not exist or is immutable
      */
-    public setVar(name: string, value: unknown): void {
+    public setVar(name: string, value: BaseDataType): void {
         const variable = this.findVar(name);
         if (!variable) {
             throw new Error(`Variable ${name} not found`);
@@ -124,9 +124,9 @@ export abstract class Scope {
         this.createVar(name, varDefinition);
     }
 
-    protected abstract readVar(name: string, variable: Variable): unknown;
+    protected abstract readVar(name: string, variable: Variable): BaseDataType;
 
-    protected abstract writeVar(name: string, variable: Variable, value: unknown): void;
+    protected abstract writeVar(name: string, variable: Variable, value: BaseDataType): void;
 
     protected abstract createVar(name: string, variable: Variable): void;
 
@@ -140,8 +140,10 @@ export abstract class Scope {
         return null;
     };
 
-    protected prefix(name: string): string {
-        return `_[${this.type}]_${name}`;
+    protected asserts(name: string, variable: Variable, types: VariableType[]): void {
+        if (!types.includes(variable.type)) {
+            throw new Error(`Variable ${name} (type: ${variable.type}) cannot be interacted with in this scope (scope: ${this.type})`);
+        }
     }
 }
 
