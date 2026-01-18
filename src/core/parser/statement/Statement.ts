@@ -1,5 +1,6 @@
 import { ParsedString } from "../expression/parseRichString";
 import { ExpressionNode, NodeType, StatementNode } from "../Node";
+import { FunctionParam } from "../shared/parseParams";
 
 export type VariableDeclaration = {
     left: ExpressionNode;
@@ -16,10 +17,6 @@ interface LocalDeclarationNode extends StatementNode {
     declarations: VariableDeclaration[];
 }
 
-type FunctionParam<T = ExpressionNode | null> = {
-    name: string;
-    defaultValue: T;
-};
 interface FunctionDeclarationNode extends StatementNode {
     type: NodeType.FunctionDeclaration;
     name: string;

@@ -1,20 +1,21 @@
 import { Namespace } from "narraleaf-react";
 import { Scope, ScopeType, Variable, VariableSearchResult, VariableType } from "./Variables";
-import { BaseDataType } from "./Data";
+import { DataType, DataTypeKind } from "./Data";
+import { mapToObject } from "@/runtime/utils/data";
 
 export class ProcedureScope extends Scope {
-    private namespace: Namespace<Record<string, BaseDataType>>;
+    private namespace: Namespace<Record<string, DataType>>;
 
-    constructor(namespace: Namespace<Record<string, BaseDataType>>, parent: Scope) {
+    constructor(sceneLocal: Namespace<Record<string, DataType>>, parent: Scope) {
         super(ScopeType.Procedure, parent);
-        this.namespace = namespace;
+        this.namespace = sceneLocal;
     }
 
-    protected readVar(name: string): BaseDataType {
-        return this.namespace.get(name);
+    protected readVar(name: string): DataType | null {
+        return this.namespace.get(name) ?? null;
     }
 
-    protected writeVar(name: string, variable: Variable, value: BaseDataType): void {
+    protected writeVar(name: string, variable: Variable, value: DataType): void {
         if (!this.isVarMutable(variable)) {
             throw new Error(`Variable ${name} is not mutable`);
         }
@@ -32,10 +33,24 @@ export class ProcedureScope extends Scope {
         this.variables.set(name, variable);
     }
 
-    protected findVar(name: string): VariableSearchResult | null {
+    public findVar(name: string): VariableSearchResult | null {
         if (this.variables.has(name)) {
             return { variable: this.variables.get(name)!, scope: this };
         }
         return super.findVar(name);
+    }
+
+    protected override writeDeclare(): void {
+        this.namespace.set("[[variables]]", { type: DataTypeKind.Object, value: mapToObject<Variable>(this.variables) });
+    }
+
+    protected override readDeclare(): void {
+        const variables = this.namespace.get("[[variables]]") as { type: DataTypeKind.Object, value: Record<string, Variable> };
+        if (!variables) {
+            return;
+        }
+        for (const [name, variable] of Object.entries(variables.value)) {
+            this.variables.set(name, variable);
+        }
     }
 }

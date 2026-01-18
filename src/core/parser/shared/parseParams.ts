@@ -5,6 +5,11 @@ import { ParserError, ParserErrorType } from "../ParserError";
 import { ParserIterator } from "../ParserIterator";
 import { parseExpression } from "../expression/ParseExpression";
 
+export type FunctionParam<T = ExpressionNode | null> = {
+    name: string;
+    defaultValue: T;
+};
+
 /**
  * Parse function parameter with optional default value
  * Supports: name, name = defaultValue, ...restParam

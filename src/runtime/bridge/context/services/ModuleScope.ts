@@ -2,7 +2,8 @@ import { LiveGame, Namespace } from "narraleaf-react";
 import { ModuleRuntime } from "./Module";
 import { SceneRuntime } from "./SceneRuntime";
 import { Scope, ScopeType, Variable, VariableType, VariableSearchResult } from "./Variables";
-import { BaseDataType } from "./Data";
+import { DataType, DataTypeKind } from "./Data";
+import { mapToObject } from "@/runtime/utils/data";
 
 export class ModuleScope extends Scope {
     private moduleName: string;
@@ -40,17 +41,25 @@ export class ModuleScope extends Scope {
         return this.scenes.get(name) ?? null;
     }
 
-    protected readVar(name: string, variable: Variable): BaseDataType {
+    protected readVar(name: string, variable: Variable): DataType | null {
         if (variable.type === VariableType.Module) {
-            return this.getModule(name) ?? null;
+            const module = this.getModule(name);
+            if (!module) {
+                return { type: DataTypeKind.Null, value: null };
+            }
+            return { type: DataTypeKind.Module, value: module.getMetadata() };
         }
         if (variable.type === VariableType.Scene) {
-            return this.getScene(name) ?? null;
+            const scene = this.getScene(name);
+            if (!scene) {
+                return { type: DataTypeKind.Null, value: null };
+            }
+            return { type: DataTypeKind.Scene, value: scene.getMetadata() };
         }
         return this.getNamespace().get(this.prefixModule(name));
     }
 
-    protected writeVar(name: string, variable: Variable, value: BaseDataType): void {
+    protected writeVar(name: string, variable: Variable, value: DataType): void {
         if (!this.isVarMutable(variable)) {
             throw new Error(`Variable ${name} is not mutable`);
         }
@@ -66,7 +75,7 @@ export class ModuleScope extends Scope {
         this.variables.set(name, variable);
     }
 
-    protected findVar(name: string): VariableSearchResult | null {
+    public findVar(name: string): VariableSearchResult | null {
         if (this.variables.has(name)) {
             return { variable: this.variables.get(name)!, scope: this };
         }
@@ -79,17 +88,31 @@ export class ModuleScope extends Scope {
         return super.findVar(name);
     }
 
+    protected override writeDeclare(): void {
+        this.getNamespace().set(this.prefixModule("[[variables]]"), { type: DataTypeKind.Object, value: mapToObject<Variable>(this.variables) });
+    }
+
+    protected override readDeclare(): void {
+        const variables = this.getNamespace().get(this.prefixModule("[[variables]]")) as { type: DataTypeKind.Object, value: Record<string, Variable> };
+        if (!variables) {
+            return;
+        }
+        for (const [name, variable] of Object.entries(variables.value)) {
+            this.variables.set(name, variable);
+        }
+    }
+
     private initialize() {
         const storable = this.liveGame.getStorable();
         if (!storable.hasNamespace(this.prefixModule(this.moduleName))) {
-            const namespace = new Namespace<Record<string, BaseDataType>>(this.prefixModule(this.moduleName), {});
+            const namespace = new Namespace<Record<string, DataType>>(this.prefixModule(this.moduleName), {});
             storable.addNamespace(namespace);
         }
     }
 
-    private getNamespace(): Namespace<Record<string, BaseDataType>> {
+    private getNamespace(): Namespace<Record<string, DataType>> {
         const storable = this.liveGame.getStorable();
-        const namespace = storable.getNamespace<Record<string, BaseDataType>>(this.prefixModule(this.moduleName));
+        const namespace = storable.getNamespace<Record<string, DataType>>(this.prefixModule(this.moduleName));
         return namespace;
     }
 

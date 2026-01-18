@@ -1,4 +1,4 @@
-import { BaseDataType } from "./Data";
+import { DataType } from "./Data";
 
 export enum VariableType {
     Const = "const",
@@ -24,7 +24,7 @@ export type VariableSearchResult = {
 export type VariableData = {
     variable: Variable;
     scope: Scope;
-    data: BaseDataType;
+    data: DataType;
 };
 
 export abstract class Scope {
@@ -85,6 +85,9 @@ export abstract class Scope {
         }
 
         const data = variable.scope.readVar(name, variable.variable);
+        if (!data) {
+            return null;
+        }
         return { variable: variable.variable, scope: variable.scope, data: data };
     }
 
@@ -100,12 +103,14 @@ export abstract class Scope {
      * @param value - The new value to assign to the variable
      * @throws Error if the variable does not exist or is immutable
      */
-    public setVar(name: string, value: BaseDataType): void {
+    public setVar(name: string, value: DataType): void {
         const variable = this.findVar(name);
         if (!variable) {
             throw new Error(`Variable ${name} not found`);
         }
         variable.scope.writeVar(name, variable.variable, value);
+
+        this.writeDeclare();
     }
 
     /**
@@ -122,15 +127,25 @@ export abstract class Scope {
      */
     public declareVar(name: string, varDefinition: Variable): void {
         this.createVar(name, varDefinition);
+
+        this.writeDeclare();
     }
 
-    protected abstract readVar(name: string, variable: Variable): BaseDataType;
+    protected abstract readVar(name: string, variable: Variable): DataType | null;
 
-    protected abstract writeVar(name: string, variable: Variable, value: BaseDataType): void;
+    protected abstract writeVar(name: string, variable: Variable, value: DataType): void;
 
     protected abstract createVar(name: string, variable: Variable): void;
 
-    protected findVar(name: string): VariableSearchResult | null {
+    protected writeDeclare(): void {
+        return;
+    }
+
+    protected readDeclare(): void {
+        return;
+    }
+
+    public findVar(name: string): VariableSearchResult | null {
         if (this.variables.has(name)) {
             return { variable: this.variables.get(name)!, scope: this };
         }

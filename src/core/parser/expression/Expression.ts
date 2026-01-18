@@ -2,6 +2,7 @@ import { RawStringTag } from "@/core/lexer/String";
 import { ExpressionNode, NodeType } from "../Node";
 import { BlockStatementNode } from "../statement";
 import { BinaryOperator } from "./BinaryExpression";
+import { FunctionParam } from "../shared/parseParams";
 
 interface CallExpressionNode extends ExpressionNode {
     type: NodeType.CallExpression;
@@ -77,16 +78,16 @@ interface RestExpressionNode extends ExpressionNode {
 
 interface FunctionExpressionNode extends ExpressionNode {
     type: NodeType.FunctionExpression;
-    params: { name: string; defaultValue: ExpressionNode | null }[];
-    rest: string | null;
     name: string | null;
+    params: FunctionParam<ExpressionNode | null>[];
+    rest: string | null;
     body: ExpressionNode | BlockStatementNode; // Single expression for lambda, statements for anonymous function
 }
 
 interface MacroExpressionNode extends ExpressionNode {
     type: NodeType.MacroExpression;
-    params: { name: string; defaultValue: null }[];
-    modifiers: { name: string; defaultValue: ExpressionNode | null }[];
+    params: FunctionParam<null>[];
+    modifiers: FunctionParam<ExpressionNode | null>[];
     body: ExpressionNode[];
 }
 

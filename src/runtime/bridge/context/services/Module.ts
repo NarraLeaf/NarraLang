@@ -1,6 +1,15 @@
 
+export type ModuleMetadata = {
+    name: string;
+}
 
 export class ModuleRuntime {
+    private name: string;
+
+    constructor(name: string) {
+        this.name = name;
+    }
+
     /**
      * Retrieves all exported values from this module.
      *
@@ -26,5 +35,11 @@ export class ModuleRuntime {
      */
     public get(name: string): unknown {
         return this.getExports()[name];
+    }
+
+    public getMetadata(): ModuleMetadata {
+        return {
+            name: this.name,
+        };
     }
 }
