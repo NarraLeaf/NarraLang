@@ -8,6 +8,7 @@ export enum NodeType {
     FunctionDeclaration = "FunctionDeclaration",   // function
     MacroDeclaration = "MacroDeclaration",         // function! (macro)
     CleanupDeclaration = "CleanupDeclaration",     // cleanup
+    SceneDeclaration = "SceneDeclaration",         // scene
     // Control flow statements
     IfStatement = "IfStatement",                   // if-else if-else
     WhileStatement = "WhileStatement",             // while
@@ -97,6 +98,7 @@ export function isStatementNode(node: ParsedNode): node is StatementNode {
         case NodeType.FunctionDeclaration:
         case NodeType.MacroDeclaration:
         case NodeType.CleanupDeclaration:
+        case NodeType.SceneDeclaration:
         case NodeType.IfStatement:
         case NodeType.WhileStatement:
         case NodeType.LoopStatement:

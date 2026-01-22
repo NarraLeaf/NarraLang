@@ -38,6 +38,13 @@ interface CleanupDeclarationNode extends StatementNode {
     body: StatementNode[];
 }
 
+interface SceneDeclarationNode extends StatementNode {
+    type: NodeType.SceneDeclaration;
+    name: string;
+    modifiers: Record<string, ExpressionNode>;
+    body: StatementNode[];
+}
+
 interface IfStatementNode extends StatementNode {
     type: NodeType.IfStatement;
     condition: ExpressionNode;
@@ -115,6 +122,6 @@ interface DialogueStatementNode extends StatementNode {
 export {
     AwaitStatementNode, BlockStatementNode, BreakStatementNode, CleanupDeclarationNode, ContinueStatementNode, DialogueStatementNode, ExpressionStatementNode, ForEachStatementNode,
     ForRangeStatementNode, FunctionDeclarationNode, IfStatementNode, LocalDeclarationNode, LoopStatementNode, MacroDeclarationNode, ReturnStatementNode,
-    SugarCallStatementNode, VariableDeclarationNode, WhileStatementNode
+    SceneDeclarationNode, SugarCallStatementNode, VariableDeclarationNode, WhileStatementNode
 };
 

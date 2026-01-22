@@ -8,6 +8,7 @@ export enum KeywordType {
     Macro,
     Cleanup,
     Await,
+    Scene,
 
     If,
     Else,
@@ -43,6 +44,7 @@ export const Keywords: {
     [KeywordType.Macro]: "function!",
     [KeywordType.Cleanup]: "cleanup",
     [KeywordType.Await]: "await",
+    [KeywordType.Scene]: "scene",
     
     [KeywordType.If]: "if",
     [KeywordType.Else]: "else",

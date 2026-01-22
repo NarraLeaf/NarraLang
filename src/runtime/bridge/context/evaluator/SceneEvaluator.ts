@@ -16,6 +16,8 @@ export class SceneEvaluator extends Evaluator {
         this.scope = scope;
     }
 
+    public constructSceneNodes()
+
     public constructNode(node: StatementNode): ActionStatements {
         switch (node.type) {
             case NodeType.VariableDeclaration:

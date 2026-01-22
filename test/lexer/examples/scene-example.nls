@@ -1,0 +1,73 @@
+// Scene Declaration Examples
+// This file demonstrates the scene syntax in NarraLang
+
+// ===== Simple Scene =====
+// Scene without modifiers
+scene IntroScene {
+    set playerName "Hero"
+    set level 1
+    
+    if level is equal to 1 {
+        set greeting "Welcome, beginner!"
+    }
+}
+
+// ===== Scene with Background and Music =====
+// Scene with modifiers for background and music
+scene MainMenuScene(
+    bg "backgrounds/main_menu.png",
+    music "audio/menu_theme.mp3"
+) {
+    set selectedOption "start"
+    const menuItems ["Start Game", "Load Game", "Settings", "Exit"]
+}
+
+// ===== Complex Scene with Multiple Modifiers =====
+// Scene with various configuration modifiers
+scene GameplayScene(
+    bg "backgrounds/dungeon.png",
+    music "audio/battle_theme.mp3",
+    transition "fade",
+    volume 0.8
+) {
+    set enemyCount 5
+    set playerHealth 100
+    
+    loop 10 times {
+        set counter 1
+    }
+    
+    if playerHealth is greater than 50 {
+        set status "healthy"
+    }
+}
+
+// ===== Scene with Expression Modifiers =====
+// Modifiers can use expressions
+set assetPath "assets/"
+set bgFolder "backgrounds/"
+
+scene DynamicScene(
+    bg assetPath + bgFolder + "forest.png",
+    volume 0.5 * 2,
+    brightness 100
+) {
+    set sceneLoaded true
+}
+
+// ===== Multiple Scenes =====
+// You can define multiple scenes in the same file
+scene CutsceneOne {
+    set cutsceneProgress 0
+}
+
+scene CutsceneTwo(bg "cutscene2.png") {
+    set cutsceneProgress 50
+}
+
+scene CutsceneThree(
+    bg "cutscene3.png",
+    music "dramatic.mp3"
+) {
+    set cutsceneProgress 100
+}

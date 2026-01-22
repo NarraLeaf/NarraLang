@@ -18,6 +18,7 @@ import {
     parseFunctionDeclaration,
     parseMacroDeclaration
 } from "./FunctionDeclaration";
+import { parseSceneDeclaration } from "./SceneDeclaration";
 import { parseIfStatement } from "./IfStatement";
 import { parseLocalDeclaration } from "./LocalDeclaration";
 import { parseLoopStatement } from "./LoopStatement";
@@ -132,6 +133,9 @@ function parseKeywordStatement(iterator: ParserIterator, opts: Required<ParseSta
 
         case KeywordType.Cleanup:
             return parseCleanupDeclaration(iterator);
+
+        case KeywordType.Scene:
+            return parseSceneDeclaration(iterator);
 
         // Control flow statements
         case KeywordType.If:

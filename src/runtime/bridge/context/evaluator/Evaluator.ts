@@ -1,5 +1,5 @@
 import { IdentifierNode, LiteralNode } from "@/core/parser/expression/Expression";
-import { ExpressionNode } from "@/core/parser/Node";
+import { ExpressionNode, NodeType } from "@/core/parser/Node";
 import { ContextActionsService } from "../ContextActions";
 import { DataType, DataTypeKind } from "../services/Data";
 import { ScopeType } from "../services/Variables";
@@ -14,7 +14,13 @@ export class Evaluator {
         this.ctx = ctx;
     }
 
-    public evaluateExpression(node: ExpressionNode): DataType {}
+    public evaluateExpression(node: ExpressionNode): DataType {
+        if (node.type === NodeType.Literal) {
+            return this.evaluateLiteral(node as LiteralNode);
+        }
+
+        throw new Error(`Invalid expression node: ${node.type}`);
+    }
 
     public evaluateLiteral(node: LiteralNode): DataType {
         if (typeof node.value === "number") {

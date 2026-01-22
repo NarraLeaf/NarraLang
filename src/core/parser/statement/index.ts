@@ -8,6 +8,7 @@ export {
     parseMacroDeclaration, 
     parseCleanupDeclaration 
 } from "./FunctionDeclaration";
+export { parseSceneDeclaration } from "./SceneDeclaration";
 
 export { parseLocalDeclaration } from "./LocalDeclaration";
 export { parseIfStatement } from "./IfStatement";
