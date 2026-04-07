@@ -19,6 +19,7 @@ export enum ContextActionType {
 
 export interface RuntimeContext {
     actionService: ContextActionsService;
+    story: Story;
 }
 
 export type ContextActionProps = {
@@ -46,15 +47,19 @@ type ContextActionServiceContent = {
 };
 
 export class ContextActionsService extends Service<ContextActionServiceContent> {
+    public static CAS_SERVICE_NAME = "narralang:context-actions";
+
     public static createContext(liveGame: LiveGame, config?: IStoryConfig): RuntimeContext {
         const story = new Story("narralang", config);
         const rootScope = new ModuleScope("[[narralang-runtime]]", liveGame);
         const service = new ContextActionsService(rootScope, liveGame);
 
+        story.registerService(ContextActionsService.CAS_SERVICE_NAME, service);
         liveGame.game.use(createServiceHelperPlugin(story, service));
 
         return {
             actionService: service,
+            story,
         };
     }
 
