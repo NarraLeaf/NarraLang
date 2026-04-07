@@ -36,7 +36,8 @@ export default [
             sourceType: "module",
 
             parserOptions: {
-                project: "./tsconfig.json",
+                project: "./tsconfig.eslint.json",
+                tsconfigRootDir: __dirname,
             },
         },
 
@@ -73,12 +74,15 @@ export default [
     },
     {
         ignores: [
-            "dist/**",
+            "**/dist/**",
             "node_modules/**",
             "*.config.js",
+            "**/jest.config.cjs",
+            "*.config.cjs",
             "*.config.mjs",
             "project/**",
-            "test/**",
+            "packages/core/test/**",
+            "packages/nlc/test/**",
         ],
     },
 ];

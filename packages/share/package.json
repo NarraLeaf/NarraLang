@@ -1,0 +1,26 @@
+{
+  "name": "@narralang/share",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Internal shared types and tiny utilities for NarraLang workspace packages",
+  "license": "MPL-2.0",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node ../../project/esbuild-package.mjs share && tsc -p tsconfig.build.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

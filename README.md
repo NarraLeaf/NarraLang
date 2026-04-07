@@ -42,9 +42,9 @@ In progress...
 
 ## Tools
 
-### NLC
+### NLC (`@narralang/nlc`)
 
-In progress...
+Node compiler (phase 1): validates `.nls` and emits a TypeScript module exporting the parsed AST. CLI: `yarn workspace @narralang/nlc exec node dist/cli.cjs <input.nls> [output.ts]` after `yarn build`.
 
 ### NarraLint
 

@@ -1,0 +1,35 @@
+{
+  "name": "@narralang/nlc",
+  "version": "0.0.1-alpha.1",
+  "description": "NarraLang compiler (Node): .nls to TypeScript",
+  "license": "MPL-2.0",
+  "bin": "./dist/cli.cjs",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node ../../project/esbuild-package.mjs nlc && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "test": "jest -c jest.config.cjs"
+  },
+  "dependencies": {
+    "@narralang/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.11.18",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5.8.3"
+  }
+}

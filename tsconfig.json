@@ -1,24 +1,9 @@
 {
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "outDir": "dist",
-    "strict": true,
-    "esModuleInterop": true,
-    "sourceMap": true,
-    "skipLibCheck": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "paths": {
-      "@/*": ["./src/*"],
-      "@core/*": ["./src/core/*"]
-    },
-    "typeRoots": [
-      "./src/core/@types",
-      "./node_modules/@types"
-    ]
-  },
-  "include": ["src"],
+  "files": [],
+  "references": [
+    { "path": "./packages/share" },
+    { "path": "./packages/core" },
+    { "path": "./packages/runtime" },
+    { "path": "./packages/nlc" }
+  ]
 }

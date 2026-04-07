@@ -1,68 +1,37 @@
 {
-    "name": "narralang",
-    "version": "0.0.1-alpha.1",
-    "description": "NarraLeaf Scripting Language",
-    "bin": "./dist/cli.cjs",
-    "main": "dist/index.mjs",
-    "module": "dist/index.mjs",
-    "types": "dist/index.d.ts",
-    "license": "MPL-2.0",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.mjs",
-            "require": "./dist/index.cjs"
-        },
-        "./runtime": {
-            "types": "./dist/runtime.d.ts",
-            "import": "./dist/runtime.mjs",
-            "require": "./dist/runtime.cjs"
-        }
-    },
-    "scripts": {
-        "build": "node project/esbuild.js && tsc --emitDeclarationOnly && tsc-alias",
-        "build:dev": "node project/esbuild.js --dev && tsc --emitDeclarationOnly && tsc-alias",
-        "watch": "node project/esbuild.js --watch & tsc --emitDeclarationOnly --watch",
-        "debug": "node --inspect-brk --loader ts-node/esm --no-warnings src/index.ts",
-        "prepublishOnly": "npm run build",
-        "test": "jest",
-        "test:watch": "jest --watch",
-        "test:coverage": "jest --coverage",
-        "test:parser": "jest test/parser",
-        "test:lexer": "tsx test/lexer/1.ts",
-        "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand --no-cache",
-        "test:debug:parser": "node --inspect-brk node_modules/.bin/jest --runInBand --no-cache test/parser",
-        "test:debug:watch": "node --inspect-brk node_modules/.bin/jest --runInBand --no-cache --watch",
-        "lint": "eslint .",
-        "lint:fix": "eslint . --fix"
-    },
-    "keywords": [
-        "visual-novel",
-        "typescript",
-        "narraleaf",
-        "nvl",
-        "dsl"
-    ],
-    "peerDependencies": {
-        "narraleaf-react": "^0.8.7"
-    },
-    "devDependencies": {
-        "@types/jest": "^30.0.0",
-        "@types/node": "^20.11.18",
-        "@typescript-eslint/eslint-plugin": "^8.37.0",
-        "@typescript-eslint/parser": "^8.37.0",
-        "esbuild": "^0.25.6",
-        "eslint": "^9.31.0",
-        "jest": "^30.0.5",
-        "narraleaf-react": "^0.9.0-beta.1",
-        "ts-jest": "^29.4.1",
-        "ts-node": "^10.9.2",
-        "tsc-alias": "^1.8.16",
-        "tsx": "^4.20.3",
-        "typescript": "^5.8.3"
-    },
-    "files": [
-        "dist"
-    ],
-    "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "name": "narralang-workspace",
+  "private": true,
+  "description": "NarraLang monorepo (core, runtime, nlc, internal share)",
+  "license": "MPL-2.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "yarn workspaces foreach -Apt run build",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:core": "yarn workspace @narralang/core test",
+    "test:nlc": "yarn workspace @narralang/nlc test",
+    "test:lexer": "yarn workspace @narralang/core exec tsx test/lexer/1.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "nlc": "node ./packages/nlc/dist/cli.cjs"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.11.18",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
+    "esbuild": "^0.25.6",
+    "eslint": "^9.31.0",
+    "globals": "^16.3.0",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "yarn@4.9.1"
 }
